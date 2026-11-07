@@ -64,3 +64,36 @@ go vet ./...
 ```
 
 Testi vključujejo preverjanje branja lokalne konfiguracije, njenega prednostnega vrstnega reda in obravnave napak. Domenske migracije in endpointi bodo dodani v nadaljevanju.
+
+## CORS in REST API (DB-009)
+
+Gin vrača JSON na `GET /api/health` in `GET /api/health/db`. Neznana pot vrne JSON napako HTTP 404, nedovoljena metoda pa JSON HTTP 405.
+
+Brskalniški klici so dovoljeni samo iz konfiguriranih izvorov. Privzeto je dovoljen `http://localhost:5173` (React Vite); dodatne izvore nastavi v **korenskem** `.env`:
+
+```dotenv
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+Ne uporabljaj `*`, ne dodajaj zaključne poševnice (`/`), poti ali poverilnic. Če `CORS_ALLOWED_ORIGINS` ni nastavljen, se uporablja samo `http://localhost:5173`. Nastavitev vpliva na brskalniški CORS; **ne nadomešča avtentikacije** in neposrednih API zahtevkov brez `Origin` ne blokira.
+
+Preizkus dovoljenega izvora:
+
+```bash
+curl -i -H 'Origin: http://localhost:5173' http://localhost:8080/api/health
+```
+
+Odgovor mora vsebovati `Access-Control-Allow-Origin: http://localhost:5173`.
+
+Preizkus preflight zahtevka:
+
+```bash
+curl -i -X OPTIONS \
+  -H 'Origin: http://localhost:5173' \
+  -H 'Access-Control-Request-Method: GET' \
+  http://localhost:8080/api/health
+```
+
+Pričakuj HTTP 204. Za neznani izvor (`https://evil.example`) se dovoljenje CORS ne doda; preflight vrne HTTP 403.
+
+V mapi `backend` izvedi `go test ./...` in `go vet ./...`.
