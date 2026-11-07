@@ -8,6 +8,7 @@ DECLARE
     test_resource uuid;
     test_reservation uuid;
     invalid_time_rejected boolean := FALSE;
+    reversed_time_rejected boolean := FALSE;
     invalid_status_rejected boolean := FALSE;
     invalid_code_rejected boolean := FALSE;
     missing_user_rejected boolean := FALSE;
@@ -67,15 +68,10 @@ BEGIN
         INSERT INTO public.reservations (user_id, resource_id, starts_at, ends_at, status)
         VALUES (test_user, test_resource, '2030-01-01 10:00:00+00', '2030-01-01 09:00:00+00', 'PENDING');
     EXCEPTION WHEN check_violation THEN
-        -- Reverse time is also invalid; use separate check outside below.
-        NULL;
+        reversed_time_rejected := TRUE;
     END;
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint
-        WHERE conrelid = 'public.reservations'::regclass
-          AND conname = 'reservations_time_order_check'
-    ) THEN
-        RAISE EXCEPTION 'time ordering constraint is missing';
+    IF NOT reversed_time_rejected THEN
+        RAISE EXCEPTION 'reverse time reservation was accepted';
     END IF;
 
     BEGIN
