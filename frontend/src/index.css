@@ -1,0 +1,16 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color: #10182d;
+  background: #f7f9fc;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+.app-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.welcome-card { width: min(100%, 540px); padding: 40px; border: 1px solid #dce4f0; border-radius: 20px; background: white; box-shadow: 0 18px 50px #182f5610; text-align: center; }
+.brand-icon { display: inline-grid; place-items: center; width: 54px; height: 54px; border-radius: 14px; background: #4285f4; color: white; font-size: 34px; }
+h1 { margin: 18px 0 12px; font-size: clamp(2rem, 5vw, 2.6rem); }
+p { line-height: 1.6; color: #59677e; }
+.status { margin-top: 24px; font-weight: 600; color: #2563eb; }
