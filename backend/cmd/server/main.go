@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nik003kk/DeskBooker/backend/internal/database"
 	"github.com/nik003kk/DeskBooker/backend/internal/server"
 )
 
@@ -19,14 +20,21 @@ func main() {
 		port = "8080"
 	}
 
-	srv := &http.Server{
-		Addr:              ":" + port,
-		Handler:           server.NewRouter(),
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	pool, err := database.Open(ctx)
+	if err != nil {
+		log.Fatalf("Ne morem vzpostaviti povezave s PostgreSQL: %v", err)
+	}
+	defer pool.Close()
+	log.Println("Povezava s PostgreSQL je uspešno vzpostavljena")
+
+	srv := &http.Server{
+		Addr:              ":" + port,
+		Handler:           server.NewRouter(pool),
+		ReadHeaderTimeout: 5 * time.Second,
+	}
 
 	go func() {
 		log.Printf("DeskBooker API posluša na http://localhost:%s", port)
