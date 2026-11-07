@@ -10,14 +10,20 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nik003kk/DeskBooker/backend/internal/config"
 	"github.com/nik003kk/DeskBooker/backend/internal/database"
 	"github.com/nik003kk/DeskBooker/backend/internal/server"
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	// Load repository-root .env during local development.
+	// Explicit process environment variables take precedence.
+	if err := config.LoadLocalEnv(); err != nil {
+		log.Fatalf("Napaka konfiguracije okolja: %v", err)
+	}
+	port, err := config.Port(os.Getenv)
+	if err != nil {
+		log.Fatalf("Neveljavna konfiguracija API: %v", err)
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
