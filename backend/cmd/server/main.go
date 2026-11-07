@@ -16,14 +16,16 @@ import (
 )
 
 func main() {
-	// Load repository-root .env during local development.
-	// Explicit process environment variables take precedence.
 	if err := config.LoadLocalEnv(); err != nil {
 		log.Fatalf("Napaka konfiguracije okolja: %v", err)
 	}
 	port, err := config.Port(os.Getenv)
 	if err != nil {
 		log.Fatalf("Neveljavna konfiguracija API: %v", err)
+	}
+	allowedOrigins, err := server.AllowedOrigins(os.Getenv("CORS_ALLOWED_ORIGINS"))
+	if err != nil {
+		log.Fatalf("Neveljavna CORS konfiguracija: %v", err)
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -38,7 +40,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.NewRouter(pool),
+		Handler:           server.NewRouter(pool, allowedOrigins),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
