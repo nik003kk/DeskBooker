@@ -14,10 +14,23 @@ type DatabasePinger interface {
 	Ping(context.Context) error
 }
 
-// NewRouter sets up HTTP routes and middleware for DeskBooker.
-func NewRouter(db DatabasePinger) *gin.Engine {
+// NewRouter sets up REST JSON routes, CORS and middleware for DeskBooker.
+// The caller must supply an explicit allowlist of frontend origins.
+func NewRouter(db DatabasePinger, allowedOrigins map[string]struct{}) *gin.Engine {
 	router := gin.New()
-	router.Use(gin.Logger(), gin.Recovery())
+	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
+
+	router.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{"code": "not_found", "message": "Resource not found"},
+		})
+	})
+	router.NoMethod(func(c *gin.Context) {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{
+			"error": gin.H{"code": "method_not_allowed", "message": "Method not allowed"},
+		})
+	})
+	router.HandleMethodNotAllowed = true
 
 	api := router.Group("/api")
 	api.GET("/health", func(c *gin.Context) {
