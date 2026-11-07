@@ -55,8 +55,16 @@ func TestMigrationsDirectory(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got != migrations {
-			t.Fatalf("expected %q, got %q", migrations, got)
+		gotInfo, err := os.Stat(got)
+		if err != nil {
+			t.Fatal(err)
+		}
+		expectedInfo, err := os.Stat(migrations)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !os.SameFile(gotInfo, expectedInfo) {
+			t.Fatalf("expected %q and %q to refer to the same directory", migrations, got)
 		}
 	}
 }
