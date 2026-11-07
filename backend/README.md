@@ -132,3 +132,23 @@ Ponovljen seed posodobi iste stabilne ID-je brez podvajanja podatkov.
 Ukaz deluje **samo** ob `APP_ENV=development`, uporablja obstoječo korensko
 `.env` in zapisuje podatke v ločeno shemo `demo_seed`.
 To še niso končne poslovne tabele ali dejanski uporabniški računi.
+
+## Uporabniki – podatkovna tabela (DB-015)
+
+Migracija `000003_create_users` doda dejansko tabelo `public.users` z
+UUID, e-pošto, geselskim hashom, imenom, priimkom, vlogo, oddelkom in
+časom ustvaritve. Podrobnosti: [`docs/users-schema.md`](../docs/users-schema.md).
+
+```bash
+go run ./cmd/migrate up
+go run ./cmd/migrate status
+```
+
+Za integracijski preizkus omejitev (iz **korena repozitorija**):
+
+```bash
+docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/users-smoke.sql
+```
+
+Preizkus izvede `ROLLBACK` in ne pusti testnih vrstic. V produkciji
+ne zaganjaj migracije `down` brez varnostne kopije, saj izbriše uporabnike.
