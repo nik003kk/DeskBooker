@@ -14,7 +14,7 @@ type fakeDatabase struct{ err error }
 func (db fakeDatabase) Ping(context.Context) error { return db.err }
 
 func TestHealthEndpoint(t *testing.T) {
-	router := NewRouter(fakeDatabase{})
+	router := NewRouter(fakeDatabase{}, mustOrigins(t, ""))
 	response := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodGet, "/api/health", nil)
 
@@ -48,7 +48,7 @@ func TestDatabaseHealthEndpoint(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			router := NewRouter(tc.db)
+			router := NewRouter(tc.db, mustOrigins(t, ""))
 			response := httptest.NewRecorder()
 			router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/health/db", nil))
 			if response.Code != tc.wantCode {
@@ -62,7 +62,7 @@ func TestDatabaseHealthEndpoint(t *testing.T) {
 }
 
 func TestUnknownEndpointReturns404(t *testing.T) {
-	router := NewRouter(fakeDatabase{})
+	router := NewRouter(fakeDatabase{}, mustOrigins(t, ""))
 	response := httptest.NewRecorder()
 	router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/unknown", nil))
 
