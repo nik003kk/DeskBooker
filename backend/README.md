@@ -152,3 +152,23 @@ docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d desk
 
 Preizkus izvede `ROLLBACK` in ne pusti testnih vrstic. V produkciji
 ne zaganjaj migracije `down` brez varnostne kopije, saj izbriše uporabnike.
+
+## Rezervacijski viri – tabela resources (DB-016)
+
+Migracija `000004_create_resources` ustvari poslovno tabelo `public.resources`
+za mize, sejne sobe in parkirna mesta. Vse podrobnosti, omejitve in primeri
+so v [`docs/resources-schema.md`](../docs/resources-schema.md).
+
+```bash
+go run ./cmd/migrate up
+go run ./cmd/migrate status
+```
+
+Pričakovana verzija je `4`. Lokalni integracijski test iz **korenske mape**:
+
+```bash
+docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/resources-smoke.sql
+```
+
+Test izvede `ROLLBACK` in ne pusti podatkov. Povrnitev migracije
+`down` izbriše vse dejanske vire; ne uporabljaj je na produkcijski bazi.
