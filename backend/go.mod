@@ -1,8 +1,11 @@
 module github.com/nik003kk/DeskBooker/backend
 
-go 1.23.0
+go 1.25.0
 
-require github.com/gin-gonic/gin v1.10.1
+require (
+	github.com/gin-gonic/gin v1.10.1
+	github.com/jackc/pgx/v5 v5.12.0
+)
 
 require (
 	github.com/bytedance/sonic v1.11.6 // indirect
