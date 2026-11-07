@@ -41,7 +41,7 @@ go run ./cmd/migrate status
 Po migraciji mora biti verzija **3, dirty: false**. Preveri strukturo:
 
 ```bash
-docker compose exec postgres psql -U deskbooker -d deskbooker -c '\\d public.users'
+docker compose exec postgres psql -U deskbooker -d deskbooker -c '\d public.users'
 ```
 
 Za **dejanski integracijski preizkus** omejitev iz korena projekta:
