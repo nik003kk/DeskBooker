@@ -216,3 +216,26 @@ Smoke test preveri uspešen vnos, potrditvena polja in zavrnitve neveljavnih
 podatkov; na koncu izvede `ROLLBACK` in ne pušča testnih zapisov.
 Migracija `down` izbriše vse rezervacije, zato je ne izvajaj na
 produkcijski bazi brez ustreznega načrta in varnostne kopije.
+
+## Pravila za rezervacije in indeksi (DB-019)
+
+Migracija `000007_reservation_constraints` uvede preprečevanje časovno
+prekrivajočih se aktivnih rezervacij istega vira na ravni PostgreSQL,
+enolične check-in kode in indekse za uporabnikov pregled in urnik virov.
+Podrobnosti: [`docs/reservation-constraints.md`](../docs/reservation-constraints.md).
+
+```bash
+go run ./cmd/migrate up
+go run ./cmd/migrate status
+```
+
+Pričakovana verzija je `7`. SQL integracijski preizkus izvedi iz
+**korena repozitorija**:
+
+```bash
+docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/reservation-constraints-smoke.sql
+```
+
+Testni zapisi se povrnejo z `ROLLBACK`. Pred migracijo na bazi z resničnimi
+podatki preveri morebitna že obstoječa prekrivanja in podvojene check-in
+kode, saj migracija ob konfliktu ne more uspeti.
