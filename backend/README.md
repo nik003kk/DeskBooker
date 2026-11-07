@@ -116,3 +116,19 @@ go run ./cmd/migrate down
 `up` izvede vse čakajoče verzije, `down` pa povrne **eno** verzijo.
 Migracije se ne izvajajo samodejno ob zagonu API strežnika.
 Prva verzija je neinvazivna baseline migracija; aplikacijskih tabel še ne ustvari.
+
+## Razvojni testni podatki (DB-011)
+
+Navodila: [`docs/seed-data.md`](../docs/seed-data.md).
+
+Po zagonu PostgreSQL in migracij:
+
+```bash
+go run ./cmd/migrate up
+APP_ENV=development go run ./cmd/seed
+```
+
+Ponovljen seed posodobi iste stabilne ID-je brez podvajanja podatkov.
+Ukaz deluje **samo** ob `APP_ENV=development`, uporablja obstoječo korensko
+`.env` in zapisuje podatke v ločeno shemo `demo_seed`.
+To še niso končne poslovne tabele ali dejanski uporabniški računi.
