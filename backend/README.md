@@ -172,3 +172,24 @@ docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d desk
 
 Test izvede `ROLLBACK` in ne pusti podatkov. Povrnitev migracije
 `down` izbriše vse dejanske vire; ne uporabljaj je na produkcijski bazi.
+
+## Lastnosti rezervacijskih virov (DB-017)
+
+Migracija `000005_create_resource_features` doda tabelo `public.resource_features`
+za pripenjanje več lastnosti/opreme istemu viru. Podrobnosti:
+[`docs/resource-features-schema.md`](../docs/resource-features-schema.md).
+
+```bash
+go run ./cmd/migrate up
+go run ./cmd/migrate status
+```
+
+Pričakovana verzija je `5`. Integracijski test za lokalni PostgreSQL
+(iz korena repozitorija):
+
+```bash
+docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/resource-features-smoke.sql
+```
+
+Test ne pušča podatkov (`ROLLBACK`). Povrnitev migracije `down`
+izbriše podatke o lastnostih in je zato destruktivna.
