@@ -1,54 +1,57 @@
 # DeskBooker – frontend
 
-React 19 + Vite 7 + React Router (DB-012).
-
-## Predpogoji
-
-- Node.js, združljiv z Vite 7 (20.19+ ali 22.12+)
-- npm
+React 19 + Vite 7 + React Router.
 
 ## Lokalni zagon
 
-Iz korenske mape projekta:
+Predpogoji: Node.js 20.19+ ali 22.12+ in npm.
 
 ```bash
 cd frontend
-npm install
+npm ci
+npm test
+npm run build
 npm run dev
 ```
 
-Odpri naslov Vite (običajno http://localhost:5173).
+V brskalniku odpri http://localhost:5173.
 
-## Navigacija
+## Navigacija in strani (DB-012)
 
 | Pot | Stran |
 | --- | --- |
-| `/` | Začetna stran in hitre povezave |
+| `/` | Začetna stran |
 | `/desks` | Delovna mesta |
 | `/rooms` | Sejne sobe |
 | `/parking` | Parkirišča |
 | `/equipment` | Oprema |
 | `/my-reservations` | Moje rezervacije |
 | `/login` | Prijava |
-| Neznana pot | Stran 404 in povezava domov |
+| Neznana pot | 404 |
 
-Navigacija uporablja `NavLink` brez osveževanja strani. Aktivna povezava je vizualno označena;
-usmerjanje upravlja `BrowserRouter`. Poti so centralizirane v `src/routes.js`.
-Navigacija je prilagojena ozkim zaslonom in dostopna s tipkovnico.
+## UI komponente in odzivna postavitev (DB-013)
 
-**Pomembno:** DB-012 implementira samo usmerjanje, osnovno navigacijo in ogrodje strani.
-Podatki, prijava in rezervacije še niso implementirani; prikazane so strani »V pripravi«.
+- `src/components/ui.jsx`: ponovno uporabne komponente `Button`, `ButtonLink`, `Card`, `Field`, `SelectField`, `StatusBadge`.
+- `src/index.css`: skupni design tokens, stanja hover/focus/disabled, prilagodljive mreže in prelomi za tablične ter mobilne naprave.
+- Glava z aktivno navigacijo, dostopna preskočna povezava, začetni pregled virov, kartice in osnovni iskalni obrazec.
+- Iskanje po imenu in nadstropju uporablja **lokalne demonstracijske podatke**. Ne pošilja zahtevkov na backend in ne shranjuje rezervacij.
+- Gumbi »Rezerviraj (kmalu)« so onemogočeni, dokler funkcionalnost ni implementirana.
 
-## Testi in gradnja
+**Wireframei:** v repozitoriju ob pripravi DB-013 ni bilo priloženih wireframe datotek. Uporabljena je začasna skladna vizualna osnova; po prejemu dejanskih wireframeov je treba preveriti in po potrebi uskladiti komponente.
+
+## Preverjanje
 
 ```bash
 npm test
 npm run build
+npm run dev
 ```
 
-`npm test` preverja poti, unikatnost, povezave med navigacijo in glavnimi sekcijami.
-Ročno v brskalniku preveri premikanje med stranmi, osvežitev neposredne povezave
-(npr. `http://localhost:5173/rooms`), neobstoječo pot in obnašanje navigacije na telefonu.
+V brskalniku ročno preveri:
+1. Poti `/`, `/desks`, `/rooms`, `/parking`, `/equipment`, `/my-reservations`, `/login` in neobstoječo pot.
+2. Na strani `/desks` vnesi `D-101` in izberi »Prikaži«: ostati mora ena kartica; `xyz-ne-obstaja` mora prikazati prazno stanje; »Ponastavi« ali »Počisti filter« vrne vse demonstracijske kartice.
+3. Na strani `/rooms` izberi 2. nadstropje: vidna morata biti Pohorje in Bled.
+4. Zaslon približno 375 px širok: navigacija je vodoravno premakljiva, kartice in obrazci se postavijo v en stolpec in brez vodoravnega razlivanja.
+5. Tab navigacija in vidna stanja fokusa, povezava »Preskoči na vsebino«, onemogočeni gumbi rezervacij.
 
-`npm install` bo posodobil `frontend/package-lock.json`. **Commitaj in pushaj
-lockfile na feature vejo**, preden se PR združi. Ne dodajaj `node_modules/` ali `dist/`.
+Produkcijska gradnja: `npm run build` ustvari `dist/`, ki je ignoriran v Git.
