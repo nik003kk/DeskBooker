@@ -97,3 +97,22 @@ curl -i -X OPTIONS \
 Pričakuj HTTP 204. Za neznani izvor (`https://evil.example`) se dovoljenje CORS ne doda; preflight vrne HTTP 403.
 
 V mapi `backend` izvedi `go test ./...` in `go vet ./...`.
+
+## Podatkovne migracije (DB-010)
+
+Za nadzor različic PostgreSQL sheme uporabljamo `golang-migrate`. Podrobna navodila:
+[`docs/migrations.md`](../docs/migrations.md).
+
+Iz mape `backend`:
+
+```bash
+go mod tidy
+go run ./cmd/migrate status
+go run ./cmd/migrate up
+go run ./cmd/migrate status
+go run ./cmd/migrate down
+```
+
+`up` izvede vse čakajoče verzije, `down` pa povrne **eno** verzijo.
+Migracije se ne izvajajo samodejno ob zagonu API strežnika.
+Prva verzija je neinvazivna baseline migracija; aplikacijskih tabel še ne ustvari.
