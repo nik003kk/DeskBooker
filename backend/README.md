@@ -193,3 +193,26 @@ docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d desk
 
 Test ne pušča podatkov (`ROLLBACK`). Povrnitev migracije `down`
 izbriše podatke o lastnostih in je zato destruktivna.
+
+## Rezervacije – tabela reservations (DB-018)
+
+Migracija `000006_create_reservations` doda `public.reservations`
+s povezavama na uporabnike in vire, začetkom/koncem, statusom,
+check-in kodo in časom potrditve. Več informacij:
+[`docs/reservations-schema.md`](../docs/reservations-schema.md).
+
+```bash
+go run ./cmd/migrate up
+go run ./cmd/migrate status
+```
+
+Pričakovana verzija je `6`. Lokalni integracijski preizkus iz korena:
+
+```bash
+docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/reservations-smoke.sql
+```
+
+Smoke test preveri uspešen vnos, potrditvena polja in zavrnitve neveljavnih
+podatkov; na koncu izvede `ROLLBACK` in ne pušča testnih zapisov.
+Migracija `down` izbriše vse rezervacije, zato je ne izvajaj na
+produkcijski bazi brez ustreznega načrta in varnostne kopije.
