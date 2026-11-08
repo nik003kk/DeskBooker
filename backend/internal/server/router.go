@@ -23,6 +23,12 @@ func NewRouter(db DatabasePinger, allowedOrigins map[string]struct{}) *gin.Engin
 // NewRouterWithRegistration optionally exposes the registration endpoint.
 // Existing health-only tests can continue using NewRouter.
 func NewRouterWithRegistration(db DatabasePinger, allowedOrigins map[string]struct{}, register gin.HandlerFunc) *gin.Engine {
+    return NewRouterWithAuth(db, allowedOrigins, register, nil)
+}
+
+// NewRouterWithAuth exposes configured authentication handlers and keeps
+// the legacy health/registration constructor behavior unchanged.
+func NewRouterWithAuth(db DatabasePinger, allowedOrigins map[string]struct{}, register, login gin.HandlerFunc) *gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -41,6 +47,9 @@ func NewRouterWithRegistration(db DatabasePinger, allowedOrigins map[string]stru
 	api := router.Group("/api")
     if register != nil {
         api.POST("/auth/register", register)
+    }
+    if login != nil {
+        api.POST("/auth/login", login)
     }
 
 	api.GET("/health", func(c *gin.Context) {
