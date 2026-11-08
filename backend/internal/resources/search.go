@@ -13,6 +13,17 @@ type Searcher interface {
  SearchResources(context.Context,models.ResourceSearch)([]models.Resource,error)
 }
 
+// FeatureLister is optional for older search mocks, but implemented by
+// the production repository. Search cards include actual stored equipment.
+type FeatureLister interface {
+ ListFeatures(context.Context,string)([]models.ResourceFeature,error)
+}
+
+type searchResourceResponse struct {
+ models.ResourceDTO
+ Features []string `json:"features"`
+}
+
 // SearchHandler accepts optional type, date/start/end and feature filters.
 // Times are interpreted as Europe/Ljubljana local business time.
 func SearchHandler(store Searcher)gin.HandlerFunc{
@@ -60,8 +71,21 @@ func SearchHandler(store Searcher)gin.HandlerFunc{
   if err!=nil{
    c.JSON(500,gin.H{"error":gin.H{"code":"search_failed","message":"Could not search resources"}});return
   }
-  result:=make([]models.ResourceDTO,0,len(found))
-  for _,r:=range found {result=append(result,r.Public())}
+  result:=make([]searchResourceResponse,0,len(found))
+  features,hasFeatures:=store.(FeatureLister)
+  for _,r:=range found {
+   item:=searchResourceResponse{ResourceDTO:r.Public(),Features:[]string{}}
+   if hasFeatures {
+    stored,err:=features.ListFeatures(c.Request.Context(),r.ID)
+    if err!=nil {
+     c.JSON(500,gin.H{"error":gin.H{"code":"search_failed","message":"Could not load equipment"}})
+     return
+    }
+    for _,f:=range stored {item.Features=append(item.Features,f.Feature)}
+   }
+   result=append(result,item)
+  }
+  c.Header("Cache-Control","no-store")
   c.JSON(http.StatusOK,gin.H{"resources":result})
  }
 }

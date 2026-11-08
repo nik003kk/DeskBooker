@@ -199,3 +199,18 @@ Komponenta `ResourceResultCard` prikazuje naziv, tip, nadstropje, kapaciteto
 in razpoložljivo opremo. Gumb »Rezerviraj (kmalu)« je namenoma onemogočen,
 ker ustvarjanje rezervacije še ni implementirano. Do DB-049 je na strani
 prikazan jasno označen primer kartice, ne rezultat iz baze.
+
+## Pravi rezultati iskanja (DB-049)
+
+Stran `/search` je zdaj povezana z zaščitenim `GET /api/resources`, ki
+vrne aktivne in časovno proste vire z dejansko shranjenimi lastnostmi opreme.
+Filtri vključujejo vrsto, datum, začetek, konec ter opremo (zahtevane so **vse**).
+Ob odprtju strani se naložijo aktivni viri. Spreminjanje filtrov in klik
+**Poišči vire** ponovno poizvedujeta po bazi. **Ponastavi filtre** povrne
+vse aktivne vire. Vključena so stanja nalaganja, praznega seznama in napake.
+Dostop ima vsak prijavljen uporabnik; za rezerviranje je gumb še onemogočen,
+ker ustvarjanje rezervacij sodi v kasnejši zahtevek.
+
+Preveri: `npm test && npm run build`, nato v brskalniku `/search`.
+Poskusi `DESK`, datum 2026-11-09, 09:00–17:00, `Monitor` in preveri
+odziv ob napačni kombinaciji filtrov ter ponastavitev.
