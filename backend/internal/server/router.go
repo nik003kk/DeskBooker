@@ -80,6 +80,12 @@ func NewRouterWithResourceEdit(db DatabasePinger,allowedOrigins map[string]struc
 // NewRouterWithActivation enables role-restricted activation and deactivation.
 func NewRouterWithActivation(db DatabasePinger,allowedOrigins map[string]struct{},
  register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList,editResource,activation gin.HandlerFunc)*gin.Engine {
+    return NewRouterWithAdminDetail(db,allowedOrigins,register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList,editResource,activation,nil)
+}
+
+// NewRouterWithAdminDetail provides prefilled resource editor data.
+func NewRouterWithAdminDetail(db DatabasePinger,allowedOrigins map[string]struct{},
+ register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList,editResource,activation,adminDetail gin.HandlerFunc)*gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -116,6 +122,7 @@ func NewRouterWithActivation(db DatabasePinger,allowedOrigins map[string]struct{
     }
     if requireJWT!=nil && requireManager!=nil && activation!=nil {api.PATCH("/resources/:id/activation",requireJWT,requireManager,activation)}
     if requireJWT!=nil && requireManager!=nil && editResource!=nil {api.PATCH("/resources/:id",requireJWT,requireManager,editResource)}
+    if requireJWT!=nil && requireManager!=nil && adminDetail!=nil {api.GET("/admin/resources/:id",requireJWT,requireManager,adminDetail)}
     if requireJWT!=nil && requireManager!=nil && adminList!=nil {api.GET("/admin/resources",requireJWT,requireManager,adminList)}
     if requireJWT != nil && requireManager != nil && addFeatures != nil {
         api.POST("/resources/:id/features", requireJWT, requireManager, addFeatures)

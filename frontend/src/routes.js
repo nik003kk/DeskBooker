@@ -11,6 +11,7 @@ export const paths = Object.freeze({
   profile: '/profile',
   adminResources: '/admin/resources',
   createResource: '/admin/resources/new',
+  editResource: '/admin/resources/:id/edit',
 })
 
 export const sections = Object.freeze([
