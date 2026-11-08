@@ -5,6 +5,7 @@ import { navigation, paths, sections } from './routes.js'
 import RegisterPage from './components/RegisterPage.jsx'
 import LoginPage from './components/LoginPage.jsx'
 import { useAuth } from './AuthContext.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 const resourceSamples = {
   [paths.desks]: [
@@ -238,7 +239,7 @@ export default function App() {
               element={<ResourcePage path={path} title={label} description={description} />}
             />
           ))}
-          <Route path={paths.reservations} element={<ComingSoonPage title="Moje rezervacije" description="Tukaj boš spremljal in upravljal svoje rezervacije." />} />
+          <Route path={paths.reservations} element={<ProtectedRoute><ComingSoonPage title="Moje rezervacije" description="Tukaj boš spremljal in upravljal svoje rezervacije." /></ProtectedRoute>} />
           <Route path={paths.register} element={<RegisterPage />} />
           <Route path={paths.login} element={<LoginPage />} />
           <Route path="*" element={<NotFoundPage />} />

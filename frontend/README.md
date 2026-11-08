@@ -125,3 +125,15 @@ lokalno sejo. JWT ima veljavnost 15 minut in se ne osvežuje samodejno.
 Za produkcijo velja opozorilo: JavaScript dosegljivi JWT v
 `sessionStorage` zahtevajo močno zaščito pred XSS. Dolgoročno je
 priporočljivo oceniti varno strežniško sejo ali HttpOnly piškotke.
+
+## Zaščitene poti in preverjanje dovoljenj (DB-028)
+
+React `/my-reservations` je dostopen samo ob veljavni prijavi,
+sicer preusmeri na `/login`. `authorizedFetch` samodejno priloži
+Bearer JWT: pri HTTP 401 odstrani lokalno sejo, pri HTTP 403 pa
+prikaže napako dovoljenj, ne da bi uporabnika odjavil.
+
+Backend `auth.RequireJWT` preverja podpis in veljavnost, novi
+`auth.RequireRoles` pa pri dovoljenjih prebere dejansko vlogo iz baze
+(ne iz poljubne zahteve). Vse prihodnje administrativne API poti
+lahko uporabljajo `RequireJWT` in `RequireRoles` skupaj.
