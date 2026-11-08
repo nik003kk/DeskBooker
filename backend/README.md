@@ -466,3 +466,13 @@ Začetek mora biti v prihodnosti, pred koncem, trajanje največ 24 ur,
 oba časa pa natančna na minuto. API vrne HTTP 400 pred DB zahtevkom
 ob pretečenem ali nesmiselnem intervalu. Primerjava uporablja UTC instante,
 ne lokalnih časovnih nizov.
+
+## Varnostna check-in koda (DB-053)
+
+Ob uspešnem `POST /api/reservations` je `check_in_pin` natanko
+štirimestna koda (vključno z morebitnimi vodilnimi ničlami).
+Generira se z `crypto/rand`, shrani v `check_in_code` in ob konfliktu
+unikatnega indeksa varno znova poskusi v novi transakciji.
+Koda se pojavi samo v odgovoru ob ustvarjanju; splošni `ReservationDTO`
+je ne vsebuje. API uporablja `Cache-Control: no-store`.
+Za produkcijo bo potreben tudi nadzor števila poskusov vnosa PIN.
