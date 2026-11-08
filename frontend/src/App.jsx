@@ -4,6 +4,7 @@ import { Button, ButtonLink, Card, Field, SelectField, StatusBadge } from './com
 import { navigation, paths, sections } from './routes.js'
 import RegisterPage from './components/RegisterPage.jsx'
 import LoginPage from './components/LoginPage.jsx'
+import { useAuth } from './AuthContext.jsx'
 
 const resourceSamples = {
   [paths.desks]: [
@@ -195,6 +196,7 @@ function NotFoundPage() {
 }
 
 function Navigation() {
+  const { isAuthenticated, user, logout } = useAuth()
   return (
     <nav className="site-nav" aria-label="Glavna navigacija">
       {navigation.map(({ path, label, end }) => (
@@ -207,6 +209,7 @@ function Navigation() {
           {label}
         </NavLink>
       ))}
+      {isAuthenticated && <button type="button" className="nav-link auth-logout" onClick={logout}>Odjava ({user?.first_name || user?.email || "uporabnik"})</button>}
     </nav>
   )
 }
