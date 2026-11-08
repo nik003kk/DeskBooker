@@ -371,3 +371,14 @@ doda največ 20 lastnosti. Podvojitve v zahtevku se zavrnejo,
 obstoječe lastnosti v bazi se ne podvajajo (case-insensitive unique
 index). En sam SQL INSERT ohranja atomarnost celotnega seznama.
 Odgovor HTTP 201 vrne shranjene lastnosti. Neznan vir vrne HTTP 404.
+
+## Validacija virov (DB-035)
+
+Ime vira mora biti neprazno, brez odvečnih presledkov in kontrolnih
+znakov (največ 150 Unicode znakov). Tip je `DESK`, `MEETING_ROOM`
+ali `PARKING_SPOT`, kapaciteta mora biti pozitivna in nadstropje
+nenegativno ali `null`. Validacija teče pred HTTP vstavljanjem in
+znotraj repository-ja. Podvojeno ime brez razlikovanja velikosti črk
+vrne HTTP 409. Migracija `000009_resource_validation` zagotavlja
+`floor >= 0` tudi neposredno v PostgreSQL. Po `go run ./cmd/migrate up`
+pričakuj verzijo **9, dirty: false**.
