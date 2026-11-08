@@ -33,6 +33,7 @@ type UserDTO struct {
     FirstName string `json:"first_name"`
     LastName string `json:"last_name"`
     Role UserRole `json:"role"`
+    Status UserStatus `json:"status"`
     Department *string `json:"department,omitempty"`
     CreatedAt time.Time `json:"created_at"`
 }
@@ -40,7 +41,7 @@ type UserDTO struct {
 func (u User) Public() UserDTO {
     return UserDTO{
         ID: u.ID, Email: u.Email, FirstName: u.FirstName,
-        LastName: u.LastName, Role: u.Role, Department: u.Department,
+        LastName: u.LastName, Role: u.Role, Status: u.Status, Department: u.Department,
         CreatedAt: u.CreatedAt,
     }
 }
