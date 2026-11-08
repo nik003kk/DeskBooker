@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx'
 import ProfilePage from './components/ProfilePage.jsx'
 import CreateResourcePage from './components/CreateResourcePage.jsx'
 import AdminResourcesPage from './components/AdminResourcesPage.jsx'
+import EditResourcePage from './components/EditResourcePage.jsx'
 
 const resourceSamples = {
   [paths.desks]: [
@@ -242,6 +243,7 @@ export default function App() {
               element={<ResourcePage path={path} title={label} description={description} />}
             />
           ))}
+          <Route path={paths.editResource} element={<ProtectedRoute><EditResourcePage /></ProtectedRoute>} />
           <Route path={paths.adminResources} element={<ProtectedRoute><AdminResourcesPage /></ProtectedRoute>} />
           <Route path={paths.createResource} element={<ProtectedRoute><CreateResourcePage /></ProtectedRoute>} />
           <Route path={paths.profile} element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
