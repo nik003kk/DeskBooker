@@ -214,3 +214,9 @@ ker ustvarjanje rezervacij sodi v kasnejši zahtevek.
 Preveri: `npm test && npm run build`, nato v brskalniku `/search`.
 Poskusi `DESK`, datum 2026-11-09, 09:00–17:00, `Monitor` in preveri
 odziv ob napačni kombinaciji filtrov ter ponastavitev.
+
+## Predogled rezervacije (DB-054)
+
+Zaščitena pot `/reservations/confirm` prikazuje izbrani vir, nadstropje,
+datum in uro pred potrditvijo, ob manjkajočem izboru pa uporabnika
+usmeri nazaj na `/search`. Dejanska potrditev bo vključena v DB-055.
