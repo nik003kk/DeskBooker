@@ -8,9 +8,9 @@ import (
     "io"
     "mime"
     "net/http"
-    "strings"
 
     "github.com/gin-gonic/gin"
+    "github.com/jackc/pgx/v5/pgconn"
     "github.com/nik003kk/DeskBooker/backend/internal/models"
 )
 
@@ -45,20 +45,24 @@ func CreateHandler(store Creator) gin.HandlerFunc {
             c.JSON(400,gin.H{"error":gin.H{"code":"invalid_json","message":"Only one JSON object allowed"}})
             return
         }
-        if strings.TrimSpace(request.Name)=="" || len([]rune(request.Name))>150 ||
-            request.Name!=strings.TrimSpace(request.Name) || request.Capacity<=0 ||
-            (request.Type!=models.ResourceDesk && request.Type!=models.ResourceMeetingRoom &&
-                request.Type!=models.ResourceParkingSpot) {
+        active:=true
+        if request.IsActive!=nil {active=*request.IsActive}
+        input := models.CreateResourceInput{
+            Name:request.Name, Type:request.Type, Floor:request.Floor,
+            Capacity:request.Capacity, IsActive:active,
+        }
+        if models.ValidateResourceInput(input)!=nil {
             c.JSON(400,gin.H{"error":gin.H{"code":"invalid_resource","message":"Invalid resource fields"}})
             return
         }
-        active:=true
-        if request.IsActive!=nil {active=*request.IsActive}
-        resource,err:=store.CreateResource(c.Request.Context(),models.CreateResourceInput{
-            Name:request.Name,Type:request.Type,Floor:request.Floor,
-            Capacity:request.Capacity,IsActive:active,
-        })
+        resource,err:=store.CreateResource(c.Request.Context(),input)
         if err!=nil {
+            var pgErr *pgconn.PgError
+            if errors.As(err,&pgErr) && pgErr.Code=="23505" &&
+                pgErr.ConstraintName=="resources_name_lower_unique_idx" {
+                c.JSON(409,gin.H{"error":gin.H{"code":"resource_exists","message":"Resource name is already in use"}})
+                return
+            }
             c.JSON(500,gin.H{"error":gin.H{"code":"create_resource_failed","message":"Could not create resource"}})
             return
         }
