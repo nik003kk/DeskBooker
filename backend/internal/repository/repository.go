@@ -221,3 +221,21 @@ func (s *Store) UpdateUserProfile(ctx context.Context, id string, input models.U
     if err != nil { return models.User{}, fmt.Errorf("update user profile: %w", err) }
     return u, nil
 }
+
+
+// AddFeatures stores a set of features atomically in one INSERT statement.
+// Existing names are ignored case-insensitively by the DB unique index.
+func (s *Store) AddFeatures(ctx context.Context, resourceID string, names []string) ([]models.ResourceFeature, error) {
+    if resourceID == "" || len(names) == 0 { return nil, errors.New("resource ID and features are required") }
+    if _, err := s.GetResource(ctx, resourceID); err != nil { return nil, fmt.Errorf("find resource: %w", err) }
+    rows, err := s.db.Query(ctx,
+        "INSERT INTO public.resource_features (resource_id, feature) "+
+        "SELECT $1::uuid, name FROM unnest($2::text[]) AS name "+
+        "ON CONFLICT DO NOTHING", resourceID, names)
+    if err != nil { return nil, fmt.Errorf("add features: %w", err) }
+    for rows.Next() { /* INSERT does not return rows */ }
+    err = rows.Err()
+    rows.Close()
+    if err != nil { return nil, fmt.Errorf("insert features: %w", err) }
+    return s.ListFeatures(ctx, resourceID)
+}
