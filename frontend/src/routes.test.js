@@ -18,6 +18,11 @@ test('primary navigation covers home, resources, reservations and login and regi
   }
 })
 
+test('booking confirmation is a private workflow route, not a navigation item', () => {
+  assert.equal(paths.bookingConfirm, '/reservations/confirm')
+  assert.ok(!navigation.some(route => route.path === paths.bookingConfirm))
+})
+
 test('resource cards link to existing navigation paths', () => {
   const registered = new Set(navigation.map(({ path }) => path))
   assert.equal(sections.length, 4)

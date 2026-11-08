@@ -12,6 +12,7 @@ import AdminResourcesPage from './components/AdminResourcesPage.jsx'
 import EditResourcePage from './components/EditResourcePage.jsx'
 import ManagerRoute from './components/ManagerRoute.jsx'
 import ResourceSearchPage from './components/ResourceSearchPage.jsx'
+import BookingConfirmPage from './components/BookingConfirmPage.jsx'
 import { canManageResources } from './resource-permissions.js'
 
 const resourceSamples = {
@@ -251,6 +252,7 @@ export default function App() {
           <Route path={paths.createResource} element={<ManagerRoute><CreateResourcePage /></ManagerRoute>} />
           <Route path={paths.profile} element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path={paths.search} element={<ProtectedRoute><ResourceSearchPage /></ProtectedRoute>} />
+          <Route path={paths.bookingConfirm} element={<ProtectedRoute><BookingConfirmPage /></ProtectedRoute>} />
           <Route path={paths.reservations} element={<ProtectedRoute><ComingSoonPage title="Moje rezervacije" description="Tukaj boš spremljal in upravljal svoje rezervacije." /></ProtectedRoute>} />
           <Route path={paths.register} element={<RegisterPage />} />
           <Route path={paths.login} element={<LoginPage />} />
