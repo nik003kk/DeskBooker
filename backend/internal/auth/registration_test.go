@@ -83,6 +83,7 @@ func TestRegistrationValidation(t *testing.T) {
         {"two objects", "example.com", goodRequest + goodRequest, "application/json", 400},
         {"invalid json", "example.com", "{", "application/json", 400},
         {"wrong content type", "example.com", goodRequest, "text/plain", 415},
+        {"fake JSON media type", "example.com", goodRequest, "application/jsonp", 415},
     }
     for _, tc := range cases {
         t.Run(tc.name, func(t *testing.T) {
