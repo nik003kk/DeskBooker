@@ -113,3 +113,15 @@ Trajno stanje prijave in odjava prideta v DB-027.
 Preverjanje: `npm test && npm run build && npm run dev`, nato odpri
 `http://localhost:5173/login`; z obstoječim računom preveri preusmeritev
 na domov, z napačnim geslom pa sporočilo o napaki.
+
+## Stanje prijave in odjava (DB-027)
+
+Po uspešni prijavi se JWT in potek veljavnosti hranita v `sessionStorage`
+trenutnega zavihka (ne v `localStorage`). Ob obnovitvi strani se
+uporabnik preveri prek `GET /api/auth/me`, neveljaven ali potekel
+žeton pa se izbriše. Navigacija prikaže gumb **Odjava**, ki odstrani
+lokalno sejo. JWT ima veljavnost 15 minut in se ne osvežuje samodejno.
+
+Za produkcijo velja opozorilo: JavaScript dosegljivi JWT v
+`sessionStorage` zahtevajo močno zaščito pred XSS. Dolgoročno je
+priporočljivo oceniti varno strežniško sejo ali HttpOnly piškotke.
