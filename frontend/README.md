@@ -137,3 +137,10 @@ Backend `auth.RequireJWT` preverja podpis in veljavnost, novi
 `auth.RequireRoles` pa pri dovoljenjih prebere dejansko vlogo iz baze
 (ne iz poljubne zahteve). Vse prihodnje administrativne API poti
 lahko uporabljajo `RequireJWT` in `RequireRoles` skupaj.
+
+## Moj profil (DB-031)
+
+Zaščitena pot `/profile` prebere `GET /api/users/me` z JWT ter
+prikaže ime, priimek, e-pošto, oddelek, vlogo in stanje računa.
+Neprijavljene preusmeri na prijavo, HTTP 401 odstrani sejo in HTTP
+403 pokaže sporočilo o dovoljenjih. `npm test && npm run build`.
