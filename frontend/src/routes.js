@@ -28,4 +28,5 @@ export const navigation = Object.freeze([
   { path: paths.register, label: 'Registracija', end: false },
   { path: paths.profile, label: 'Moj profil', end: false },
   { path: paths.createResource, label: 'Dodaj vir', end: false },
+  { path: paths.adminResources, label: 'Upravljanje virov', end: false },
 ])
