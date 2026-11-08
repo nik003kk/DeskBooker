@@ -80,8 +80,8 @@ func (s *Store) GetUser(ctx context.Context, id string) (models.User, error) {
 }
 
 func (s *Store) CreateResource(ctx context.Context, in models.CreateResourceInput) (models.Resource, error) {
-    if in.Name == "" || in.Capacity <= 0 {
-        return models.Resource{}, errors.New("resource name and positive capacity are required")
+    if err := models.ValidateResourceInput(in); err != nil {
+        return models.Resource{}, fmt.Errorf("validate resource: %w", err)
     }
     r, err := scanResource(s.db.QueryRow(ctx,
         "INSERT INTO public.resources (name, type, floor, capacity, is_active) VALUES ($1,$2,$3,$4,$5) RETURNING "+resourceColumns,
