@@ -7,6 +7,7 @@ import(
  "net/http/httptest"
  "strings"
  "testing"
+ "time"
  "github.com/gin-gonic/gin"
  "github.com/jackc/pgx/v5/pgconn"
  "github.com/nik003kk/DeskBooker/backend/internal/models"
@@ -47,6 +48,18 @@ func TestCreateReservationRejectsInjectedFields(t *testing.T){
   store:=&fakeCreator{};r:=createTest(t,store,body,true)
   if r.Code!=400||store.called!=0{t.Fatalf("%s returned %d",body,r.Code)}
  }
+}
+func TestOldAndExcessivelyLongReservationRejected(t *testing.T){
+ for _,body:=range []string{
+  `{"resource_id":"`+resourceID+`","starts_at":"2020-01-01T09:00:00Z","ends_at":"2020-01-01T10:00:00Z"}`,
+  `{"resource_id":"`+resourceID+`","starts_at":"2030-01-01T09:00:00Z","ends_at":"2030-01-03T09:00:00Z"}`,
+  `{"resource_id":"`+resourceID+`","starts_at":"2030-01-01T09:00:01Z","ends_at":"2030-01-01T10:00:00Z"}`,
+ }{
+  store:=&fakeCreator{}
+  response:=createTest(t,store,body,true)
+  if response.Code!=400||store.called!=0{t.Fatalf("%s: status %d",body,response.Code)}
+ }
+ _=time.Now()
 }
 func TestConflictAndDBErrorMapping(t *testing.T){
  body:=`{"resource_id":"`+resourceID+`","starts_at":"2026-11-10T09:00:00Z","ends_at":"2026-11-10T10:00:00Z"}`
