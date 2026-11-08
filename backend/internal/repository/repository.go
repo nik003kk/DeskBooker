@@ -25,7 +25,7 @@ func New(db DB) *Store { return &Store{db: db} }
 
 var ErrNotFound = pgx.ErrNoRows
 
-const userColumns = "id, email, password_hash, first_name, last_name, role, department, created_at"
+const userColumns = "id, email, password_hash, first_name, last_name, role, department, created_at, status"
 const resourceColumns = "id, name, type, floor, capacity, is_active, created_at"
 const reservationColumns = "id, user_id, resource_id, starts_at, ends_at, status, check_in_code, confirmed_at, created_at"
 
@@ -33,7 +33,7 @@ func scanUser(row pgx.Row) (models.User, error) {
     var u models.User
     var department sql.NullString
     err := row.Scan(&u.ID, &u.Email, &u.PasswordHash, &u.FirstName,
-        &u.LastName, &u.Role, &department, &u.CreatedAt)
+        &u.LastName, &u.Role, &department, &u.CreatedAt, &u.Status)
     if department.Valid { u.Department = &department.String }
     return u, err
 }
