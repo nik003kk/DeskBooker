@@ -345,3 +345,11 @@ pričakuj verzijo **8**, `dirty: false`.
 Zaščiten `GET /api/users/me` zahteva Bearer JWT in vrne
 `user` z imenom, priimkom, e-pošto, oddelkom, vlogo in stanjem.
 Gesla/geselskega hasha ne vrne. Brez žetona odgovori s HTTP 401.
+
+## Urejanje profila (DB-030)
+
+Zaščiten `PATCH /api/users/me` spremeni le `first_name`,
+`last_name` in `department`. JSON `null` za oddelek odstrani
+vrednost. `email`, `role` in `status` ni dovoljeno spreminjati;
+neznana polja vrnejo HTTP 400. Po uspešnem popravku vrne HTTP 200
+in varni `UserDTO`. Migracija ostane na verziji 8.

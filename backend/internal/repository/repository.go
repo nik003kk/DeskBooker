@@ -205,3 +205,19 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (models.User, 
     }
     return u, nil
 }
+
+
+// UpdateUserProfile cannot change email, role, status, or password hash.
+func (s *Store) UpdateUserProfile(ctx context.Context, id string, input models.UpdateUserProfileInput) (models.User, error) {
+    if id == "" { return models.User{}, errors.New("user ID is required") }
+    u, err := scanUser(s.db.QueryRow(ctx,
+        "UPDATE public.users SET first_name=CASE WHEN $2 THEN $3::text ELSE first_name END, "+
+        "last_name=CASE WHEN $4 THEN $5::text ELSE last_name END, "+
+        "department=CASE WHEN $6 THEN $7::text ELSE department END "+
+        "WHERE id=$1 RETURNING "+userColumns,
+        id, input.FirstName != nil, input.FirstName,
+        input.LastName != nil, input.LastName,
+        input.DepartmentSet, input.Department))
+    if err != nil { return models.User{}, fmt.Errorf("update user profile: %w", err) }
+    return u, nil
+}
