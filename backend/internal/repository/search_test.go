@@ -25,3 +25,26 @@ func TestSearchResourcesUsesBoundFilters(t *testing.T){
   t.Fatalf("SQL not parameterized or missing window overlap: %q args=%#v",db.sql,db.args)
  }
 }
+
+func TestSearchResourcesRequiresAllEquipmentFilters(t *testing.T) {
+ db:=&stubDB{err:errors.New("no database")}
+ _,_ = New(db).SearchResources(context.Background(),models.ResourceSearch{
+  Features:[]string{"Monitor","USB-C"},
+ })
+ if !strings.Contains(db.sql,"FROM unnest($4::text[]) AS wanted(feature)") ||
+  !strings.Contains(db.sql,"WHERE NOT EXISTS (SELECT 1 FROM public.resource_features f") ||
+  !strings.Contains(db.sql,"LOWER(f.feature)=wanted.feature") ||
+  strings.Contains(db.sql,"LOWER(f.feature)=ANY") {
+  t.Fatalf("must match every feature, got query: %s",db.sql)
+ }
+ values,ok:=db.args[3].([]string)
+ if !ok || len(values)!=2 || values[0]!="monitor" || values[1]!="usb-c" {
+  t.Fatalf("unexpected normalized filter values: %#v",db.args[3])
+ }
+}
+func TestSearchResourcesNoEquipmentFilterStillMatches(t *testing.T) {
+ db:=&stubDB{err:errors.New("offline")}
+ _,_ = New(db).SearchResources(context.Background(),models.ResourceSearch{})
+ if !strings.Contains(db.sql,"unnest($4::text[])") {t.Fatal("empty filter must be treated as vacuous all-of match")}
+ if values,ok:=db.args[3].([]string);!ok || len(values)!=0 {t.Fatalf("unexpected empty filters: %#v",db.args[3])}
+}
