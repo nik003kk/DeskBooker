@@ -165,3 +165,10 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .admin-table { width: 100%; border-collapse: collapse; min-width: 560px; text-align: left; }
 .admin-table th,.admin-table td { padding: 14px 10px; border-bottom: 1px solid var(--line); }
 .admin-table th { color: var(--muted); font-size: .84rem; }
+
+/* DB-046 – resource search page */
+.resource-search-layout { display:grid; grid-template-columns:minmax(235px, 310px) minmax(0, 1fr); align-items:start; gap:24px; }
+.resource-search-panel { padding:24px; min-width:0; }
+.resource-search-results { min-width:0; }
+.resource-search-results .section-heading { margin-bottom:16px; }
+@media (max-width:800px) { .resource-search-layout {grid-template-columns:1fr;} }
