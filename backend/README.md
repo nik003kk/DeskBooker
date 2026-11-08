@@ -257,3 +257,14 @@ go run ./cmd/repository-smoke
 Zadnji ukaz poveže repository z lokalno bazo (zahteva migracije do
 verzije **7**) in izvede vse CRUD smoke korake v transakciji, ki se
 na koncu povrne z `ROLLBACK`.
+
+## Registracija službenih uporabnikov (DB-021)
+
+`POST /api/auth/register` sprejme ime, priimek, službeni e-naslov
+in geslo. V korenski `.env` nastavi `REGISTRATION_EMAIL_DOMAIN` na
+**dejansko** podjetniško domeno; brez nastavitve registracija vrne 503.
+Gesla se zgoščujejo z bcrypt, podvojen e-naslov vrne HTTP 409.
+API ne vrne gesla ali hasha in ne izda prijavne seje.
+
+Primeri, zahteve za geslo in lokalni preizkus:
+[`docs/registration-api.md`](../docs/registration-api.md).

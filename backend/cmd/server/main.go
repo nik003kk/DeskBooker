@@ -10,9 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/nik003kk/DeskBooker/backend/internal/config"
+	"github.com/nik003kk/DeskBooker/backend/internal/auth"
+    "github.com/nik003kk/DeskBooker/backend/internal/config"
 	"github.com/nik003kk/DeskBooker/backend/internal/database"
 	"github.com/nik003kk/DeskBooker/backend/internal/server"
+    "github.com/nik003kk/DeskBooker/backend/internal/repository"
 )
 
 func main() {
@@ -40,7 +42,10 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.NewRouter(pool, allowedOrigins),
+		Handler:           server.NewRouterWithRegistration(
+            pool, allowedOrigins,
+            auth.RegisterHandler(repository.New(pool), os.Getenv("REGISTRATION_EMAIL_DOMAIN")),
+        ),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
