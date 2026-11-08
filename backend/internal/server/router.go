@@ -68,6 +68,12 @@ func NewRouterWithResourceFeatures(db DatabasePinger, allowedOrigins map[string]
 // NewRouterWithAdminList serves the manager resource inventory.
 func NewRouterWithAdminList(db DatabasePinger,allowedOrigins map[string]struct{},
  register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList gin.HandlerFunc)*gin.Engine {
+    return NewRouterWithResourceEdit(db,allowedOrigins,register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList,nil)
+}
+
+// NewRouterWithResourceEdit adds manager-only atomic resource editing.
+func NewRouterWithResourceEdit(db DatabasePinger,allowedOrigins map[string]struct{},
+ register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList,editResource gin.HandlerFunc)*gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -102,6 +108,7 @@ func NewRouterWithAdminList(db DatabasePinger,allowedOrigins map[string]struct{}
     if requireJWT != nil && requireManager != nil && createResource != nil {
         api.POST("/resources", requireJWT, requireManager, createResource)
     }
+    if requireJWT!=nil && requireManager!=nil && editResource!=nil {api.PATCH("/resources/:id",requireJWT,requireManager,editResource)}
     if requireJWT!=nil && requireManager!=nil && adminList!=nil {api.GET("/admin/resources",requireJWT,requireManager,adminList)}
     if requireJWT != nil && requireManager != nil && addFeatures != nil {
         api.POST("/resources/:id/features", requireJWT, requireManager, addFeatures)

@@ -50,7 +50,7 @@ func main() {
     store := repository.New(pool)
     srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.NewRouterWithAdminList(
+		Handler:           server.NewRouterWithResourceEdit(
             pool, allowedOrigins,
             auth.RegisterHandler(store, os.Getenv("REGISTRATION_EMAIL_DOMAIN")),
             auth.LoginHandlerWithJWT(store, tokens),
@@ -62,6 +62,7 @@ func main() {
             resources.CreateHandler(store),
             resources.AddFeaturesHandler(store),
             resources.AdminListHandler(store),
+            resources.EditHandler(store),
         ),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
