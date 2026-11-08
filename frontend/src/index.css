@@ -159,3 +159,9 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .profile-edit { border-top: 1px solid var(--line); padding-top: 25px; margin-top: 26px; }
 .profile-edit h2 { margin-bottom: 9px; }
 .profile-edit form { margin-top: 16px; }
+
+.admin-resource-page { max-width: 100%; }
+.admin-table-wrap { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; min-width: 560px; text-align: left; }
+.admin-table th,.admin-table td { padding: 14px 10px; border-bottom: 1px solid var(--line); }
+.admin-table th { color: var(--muted); font-size: .84rem; }

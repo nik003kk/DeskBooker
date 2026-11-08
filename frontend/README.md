@@ -159,3 +159,10 @@ ali parkirišče, nastavi nadstropje, kapaciteto, aktivnost in opremo.
 Obrazec preveri polja; za ustvarjanje uporabi `POST /api/resources`,
 za opremo pa `POST /api/resources/:id/features`. Ker sta to ločena zahtevka,
 ob napaki shranjevanja opreme sporočilo pove, da je bil vir že ustvarjen.
+
+## Administrativni seznam virov (DB-037)
+
+`/admin/resources` je upraviteljski prikaz vseh virov, tudi neaktivnih.
+Za podatke uporablja zaščiten `GET /api/admin/resources`; prikazuje naziv,
+tip, nadstropje, kapaciteto in stanje. Neprijavljeni uporabniki
+in uporabniki brez upraviteljskih pravic ne dobijo dostopa do API-ja.

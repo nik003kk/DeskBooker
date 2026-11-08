@@ -62,6 +62,12 @@ func NewRouterWithResources(db DatabasePinger, allowedOrigins map[string]struct{
 func NewRouterWithResourceFeatures(db DatabasePinger, allowedOrigins map[string]struct{},
     register, login, requireJWT, me, profile, updateProfile,
     requireManager, createResource, addFeatures gin.HandlerFunc) *gin.Engine {
+    return NewRouterWithAdminList(db,allowedOrigins,register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,nil)
+}
+
+// NewRouterWithAdminList serves the manager resource inventory.
+func NewRouterWithAdminList(db DatabasePinger,allowedOrigins map[string]struct{},
+ register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList gin.HandlerFunc)*gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -96,6 +102,7 @@ func NewRouterWithResourceFeatures(db DatabasePinger, allowedOrigins map[string]
     if requireJWT != nil && requireManager != nil && createResource != nil {
         api.POST("/resources", requireJWT, requireManager, createResource)
     }
+    if requireJWT!=nil && requireManager!=nil && adminList!=nil {api.GET("/admin/resources",requireJWT,requireManager,adminList)}
     if requireJWT != nil && requireManager != nil && addFeatures != nil {
         api.POST("/resources/:id/features", requireJWT, requireManager, addFeatures)
     }
