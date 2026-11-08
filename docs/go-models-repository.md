@@ -57,3 +57,21 @@ Ti testi uporabljajo lažne DB odgovore; realni PostgreSQL integracijski
 preizkusi predhodnih migracij ostanejo v `backend/scripts/`.
 Za bazo mora biti migracija na verziji **7** (`dirty: false`).
 DB-020 ne dodaja novih migracij in ne spreminja API poti.
+
+## Integracijski preizkus z PostgreSQL
+
+Po zagonu lokalnega Docker PostgreSQL in migracij do verzije 7:
+
+```bash
+docker compose up -d postgres
+cd backend
+go run ./cmd/repository-smoke
+```
+
+Pričakovan izpis:
+`DB-020 repository smoke tests passed: user, resource, features, reservation, confirmation, rollback`.
+
+Preizkus uporabi **pravi repository** nad PostgreSQL transakcijo,
+ustvari in prebere uporabnika/vir/lastnost/rezervacijo, potrdi rezervacijo
+in preveri neuspeh pri ponovni potrditvi. Transakcija se vedno povrne
+z `ROLLBACK`; testni podatki se ne ohranijo.
