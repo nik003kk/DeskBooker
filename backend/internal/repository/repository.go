@@ -255,3 +255,19 @@ func (s *Store) ListAllResources(ctx context.Context) ([]models.Resource,error) 
  if err:=rows.Err();err!=nil{return nil,fmt.Errorf("iterate resources: %w",err)}
  return result,nil
 }
+
+
+// CreateConfirmedReservation inserts a confirmed booking for an active resource.
+// The existing PostgreSQL exclusion constraint is the concurrency authority.
+func (s *Store) CreateConfirmedReservation(ctx context.Context, in models.CreateReservationInput) (models.Reservation,error) {
+ if in.UserID==""||in.ResourceID==""||in.StartsAt.IsZero()||in.EndsAt.IsZero()||!in.EndsAt.After(in.StartsAt){
+  return models.Reservation{},errors.New("invalid confirmed reservation")
+ }
+ saved,err:=scanReservation(s.db.QueryRow(ctx,
+  "INSERT INTO public.reservations (user_id,resource_id,starts_at,ends_at,status,confirmed_at) "+
+  "SELECT $1,$2,$3,$4,'CONFIRMED',NOW() FROM public.resources WHERE id=$2 AND is_active=TRUE "+
+  "RETURNING "+reservationColumns,
+  in.UserID,in.ResourceID,in.StartsAt,in.EndsAt))
+ if err!=nil{return models.Reservation{},fmt.Errorf("create confirmed reservation: %w",err)}
+ return saved,nil
+}

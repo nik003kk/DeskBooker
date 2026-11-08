@@ -16,6 +16,7 @@ import (
 	"github.com/nik003kk/DeskBooker/backend/internal/server"
     "github.com/nik003kk/DeskBooker/backend/internal/repository"
     "github.com/nik003kk/DeskBooker/backend/internal/resources"
+    "github.com/nik003kk/DeskBooker/backend/internal/reservations"
 )
 
 func main() {
@@ -49,7 +50,7 @@ func main() {
     store := repository.New(pool)
     srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.NewRouterWithAvailability(
+		Handler:           server.NewRouterWithReservations(
             pool, allowedOrigins,
             auth.RegisterHandler(store, os.Getenv("REGISTRATION_EMAIL_DOMAIN")),
             auth.LoginHandlerWithJWT(store, tokens),
@@ -66,6 +67,7 @@ func main() {
             resources.AdminDetailHandler(store),
             resources.SearchHandler(store),
             resources.AvailabilityHandler(store),
+            reservations.CreateHandler(store),
         ),
 		ReadHeaderTimeout: 5 * time.Second,
 	}

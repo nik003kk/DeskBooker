@@ -91,3 +91,17 @@ func TestCreateResourceRejectsNegativeFloorBeforeQuery(t *testing.T) {
         t.Fatalf("expected validation before SQL: err=%v query=%s",err,db.sql)
     }
 }
+
+func TestConfirmedReservationUsesBoundUserAndDatabaseConstraint(t *testing.T) {
+ db:=&stubDB{err:pgx.ErrNoRows}
+ start:=time.Date(2030,1,1,9,0,0,0,time.UTC)
+ _,err:=New(db).CreateConfirmedReservation(context.Background(),models.CreateReservationInput{
+  UserID:"trusted-user",ResourceID:"resource",StartsAt:start,EndsAt:start.Add(time.Hour),
+ })
+ if !errors.Is(err,pgx.ErrNoRows)||len(db.args)!=4||db.args[0]!="trusted-user"||
+  !strings.Contains(db.sql,"'CONFIRMED',NOW()")||
+  !strings.Contains(db.sql,"is_active=TRUE")||
+  !strings.Contains(db.sql,"INSERT INTO public.reservations"){
+  t.Fatalf("unsafe confirmed booking SQL %s args=%#v error=%v",db.sql,db.args,err)
+ }
+}
