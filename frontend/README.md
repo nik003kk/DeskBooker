@@ -173,3 +173,11 @@ Upravljalec lahko iz seznama odpre predizpolnjen obrazec
 `/admin/resources/:id/edit`. Obrazec naloži vir in opremo prek
 `GET /api/admin/resources/:id` ter pošlje vse spremembe v enem
 `PATCH /api/resources/:id`; backend spremembe zapiše v eni transakciji.
+
+## Aktiviranje in deaktiviranje (DB-041)
+
+Na seznamu `/admin/resources` so statusne oznake ter gumba
+**Aktiviraj/Deaktiviraj** za posamezni vir. Prek zaščitenega
+`PATCH /api/resources/:id/activation` shrani spremembo, prikaže napako,
+če operacija odpove, in osveži status v tabeli. Podatkov in rezervacij
+ne briše.
