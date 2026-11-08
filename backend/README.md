@@ -326,3 +326,11 @@ Zaščitena pot `GET /api/auth/me` zahteva
 uporabnika. Manjkajoč, spremenjen ali potekel žeton vrne HTTP **401**.
 
 Primeri in varnostne omejitve: [`docs/jwt-authentication.md`](../docs/jwt-authentication.md).
+
+## Zaščita API poti in vloge (DB-028)
+
+Gin middleware `RequireJWT` preverja žetone (HTTP 401), `RequireRoles`
+pa dovoljenje glede na aktualno vlogo uporabnika iz PostgreSQL (HTTP
+403 za premalo pravic, 401 za izbrisanega uporabnika). Še vedno je
+potrebna uporaba teh middleware komponent na vsaki zaščiteni poti.
+Enotski testi: `go test ./internal/auth`.
