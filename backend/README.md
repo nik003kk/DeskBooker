@@ -417,3 +417,14 @@ morajo biti prisotni skupaj; interpretirani so v časovnem pasu
 `Europe/Ljubljana`. V tej različici več izbranih lastnosti pomeni
 **vsaj eno**; naloga DB-045 bo dodala pogoj za **vse** lastnosti.
 Poizvedba izloča neaktivne in časovno zasedene vire.
+
+## Razpoložljivost virov (DB-044)
+
+`GET /api/resources/:id/availability?date=2026-11-09&start=09:00&end=17:00`
+vrne `available: true/false`. Neaktivni viri in rezervacije s stanjem
+`PENDING` ali `CONFIRMED` v prekrivajočem se terminu niso razpoložljivi.
+`CANCELLED` in `COMPLETED` ne blokirajo termina. Intervali so
+polodprti: konec ene rezervacije se lahko stika z začetkom druge.
+Neveljavni datumi, ure, časovni presledki in neobstoječi časi ob
+spomladanskem prehodu na poletni čas vrnejo HTTP 400.
+API zahteva JWT. Vir brez ID-ja v bazi vrne HTTP 404.
