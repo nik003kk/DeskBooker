@@ -1,4 +1,5 @@
 import { Card, StatusBadge } from './ui.jsx'
+import ResourceSearchFilters from './ResourceSearchFilters.jsx'
 
 // The page layout is introduced independently of its API wiring.
 // DB-047 adds filters, DB-048 adds result cards, DB-049 connects the API.
@@ -14,18 +15,14 @@ export default function ResourceSearchPage() {
         <StatusBadge tone="blue">Iskanje</StatusBadge>
       </header>
       <div className="resource-search-layout">
-        <Card className="resource-search-panel" aria-labelledby="resource-search-filter-heading">
-          <h2 id="resource-search-filter-heading">Filtri</h2>
-          <p>Izberi termin, vrsto vira in zahtevano opremo.</p>
-          <p className="demo-notice">Izbor filtrov bo dodan v naslednjem koraku.</p>
-        </Card>
+        <ResourceSearchFilters onSearch={() => {}} onReset={() => {}} />
         <section className="resource-search-results" aria-labelledby="resource-search-results-heading">
           <div className="section-heading">
             <h2 id="resource-search-results-heading">Rezultati iskanja</h2>
           </div>
           <Card className="empty-state" role="status">
             <h3>Pripravljeno za iskanje</h3>
-            <p>Ko bodo filtri povezani z API-jem, bodo na tem mestu prikazani prosti viri.</p>
+            <p>Filtri so pripravljeni. V DB-049 bodo povezani z rezultati iz API-ja.</p>
           </Card>
         </section>
       </div>
