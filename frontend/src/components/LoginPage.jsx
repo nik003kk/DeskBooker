@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button, Card, Field } from './ui.jsx'
 import { paths } from '../routes.js'
 import { submitLogin, validateLogin } from '../login.js'
+import { useAuth } from '../AuthContext.jsx'
 
-export default function LoginPage({ onLogin = () => {} }) {
+export default function LoginPage() {
+  const { login } = useAuth()
   const navigate = useNavigate()
   const [values, setValues] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
@@ -34,7 +36,7 @@ export default function LoginPage({ onLogin = () => {} }) {
         signal: controller.signal,
       })
       setValues(current => ({ ...current, password: '' }))
-      onLogin(result)
+      login(result)
       navigate(paths.home, { replace: true })
     } catch (error) {
       if (error.name !== 'AbortError') setMessage(error instanceof TypeError
