@@ -181,3 +181,8 @@ Na seznamu `/admin/resources` so statusne oznake ter gumba
 `PATCH /api/resources/:id/activation` shrani spremembo, prikaže napako,
 če operacija odpove, in osveži status v tabeli. Podatkov in rezervacij
 ne briše.
+
+## Stran iskanja (DB-046)
+
+Zaščitena pot `/search` vsebuje odzivno postavitev za filtre in kartice z rezultati.
+Naslednje naloge DB-047–049 dodajajo vnos filtrov, kartice in povezavo z API-jem.
