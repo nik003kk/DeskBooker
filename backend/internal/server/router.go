@@ -54,6 +54,14 @@ func NewRouterWithProfileUpdate(db DatabasePinger, allowedOrigins map[string]str
 func NewRouterWithResources(db DatabasePinger, allowedOrigins map[string]struct{},
     register, login, requireJWT, me, profile, updateProfile,
     requireManager, createResource gin.HandlerFunc) *gin.Engine {
+    return NewRouterWithResourceFeatures(db, allowedOrigins, register, login, requireJWT, me,
+        profile, updateProfile, requireManager, createResource, nil)
+}
+
+// NewRouterWithResourceFeatures adds batch resource-feature persistence.
+func NewRouterWithResourceFeatures(db DatabasePinger, allowedOrigins map[string]struct{},
+    register, login, requireJWT, me, profile, updateProfile,
+    requireManager, createResource, addFeatures gin.HandlerFunc) *gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -87,6 +95,9 @@ func NewRouterWithResources(db DatabasePinger, allowedOrigins map[string]struct{
     }
     if requireJWT != nil && requireManager != nil && createResource != nil {
         api.POST("/resources", requireJWT, requireManager, createResource)
+    }
+    if requireJWT != nil && requireManager != nil && addFeatures != nil {
+        api.POST("/resources/:id/features", requireJWT, requireManager, addFeatures)
     }
 
 	api.GET("/health", func(c *gin.Context) {
