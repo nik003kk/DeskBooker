@@ -10,7 +10,11 @@ import(
  "github.com/gin-gonic/gin"
  "github.com/nik003kk/DeskBooker/backend/internal/models"
 )
-type searchStore struct{called int;filter models.ResourceSearch;err error}
+type searchStore struct{called int;filter models.ResourceSearch;err error; featureErr error}
+func(s *searchStore)ListFeatures(_ context.Context,_ string)([]models.ResourceFeature,error){
+ if s.featureErr!=nil{return nil,s.featureErr}
+ return []models.ResourceFeature{{ResourceID:"resource1",Feature:"Monitor"},{ResourceID:"resource1",Feature:"USB-C"}},nil
+}
 func(s *searchStore)SearchResources(_ context.Context,filter models.ResourceSearch)([]models.Resource,error){
  s.called++;s.filter=filter
  if s.err!=nil{return nil,s.err}
@@ -24,7 +28,7 @@ func TestSearchParsesFiltersAndReturnsResources(t *testing.T){
  s:=&searchStore{}
  response:=searchHTTP(t,s,"/resources?date=2026-11-09&start=09:00&end=17:00&type=DESK&features=Monitor,USB-C")
  if response.Code!=200 || s.called!=1 || s.filter.StartsAt==nil || s.filter.EndsAt==nil ||
-   s.filter.Type==nil || *s.filter.Type!=models.ResourceDesk || len(s.filter.Features)!=2 {
+   s.filter.Type==nil || *s.filter.Type!=models.ResourceDesk || len(s.filter.Features)!=2 || !strings.Contains(response.Body.String(),`"features":["Monitor","USB-C"]`) {
   t.Fatalf("status=%d calls=%d body=%s",response.Code,s.called,response.Body.String())
  }
 }
@@ -45,4 +49,12 @@ func TestSearchSanitizesStoreFailure(t *testing.T){
  s:=&searchStore{err:errors.New("private db secret")}
  w:=searchHTTP(t,s,"/resources")
  if w.Code!=500 || strings.Contains(w.Body.String(),"private db secret"){t.Fatal(w.Body.String())}
+}
+
+func TestSearchFeatureLoadErrorIsSanitized(t *testing.T) {
+ s:=&searchStore{featureErr:errors.New("private feature DB error")}
+ response:=searchHTTP(t,s,"/resources")
+ if response.Code!=500 || strings.Contains(response.Body.String(),"private feature DB error"){
+  t.Fatalf("unexpected error response: %d %s",response.Code,response.Body.String())
+ }
 }
