@@ -102,3 +102,14 @@ Odpri <http://localhost:5173/register>. Preveri:
 
 **Pozor:** uspešna registracija ustvari resničen zapis v lokalni tabeli
 `public.users`. Za ponavljanje uporabite nov testni naslov.
+
+## Prijavna stran (DB-026)
+
+`/login` vsebuje obrazec za e-pošto in geslo, kliče `POST /api/auth/login`
+in ob pravilnih podatkih preusmeri na osnovno ploščo `/`.
+Prikazuje validacijske napake ter HTTP 401, ne shranjuje gesla.
+Trajno stanje prijave in odjava prideta v DB-027.
+
+Preverjanje: `npm test && npm run build && npm run dev`, nato odpri
+`http://localhost:5173/login`; z obstoječim računom preveri preusmeritev
+na domov, z napačnim geslom pa sporočilo o napaki.
