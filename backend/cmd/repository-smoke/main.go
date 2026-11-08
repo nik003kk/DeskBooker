@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-    if err := config.Load(); err != nil {
+    if err := config.LoadLocalEnv(); err != nil {
         log.Fatal(err)
     }
     ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
