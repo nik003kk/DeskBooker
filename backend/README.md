@@ -334,3 +334,14 @@ pa dovoljenje glede na aktualno vlogo uporabnika iz PostgreSQL (HTTP
 403 za premalo pravic, 401 za izbrisanega uporabnika). Še vedno je
 potrebna uporaba teh middleware komponent na vsaki zaščiteni poti.
 Enotski testi: `go test ./internal/auth`.
+
+## Uporabniški profil (DB-029)
+
+Migracija `000008_users_status` doda preverjeno stanje računa:
+`active`, `inactive` ali `suspended` (privzeto `active`).
+Po `go run ./cmd/migrate up` in `go run ./cmd/migrate status`
+pričakuj verzijo **8**, `dirty: false`.
+
+Zaščiten `GET /api/users/me` zahteva Bearer JWT in vrne
+`user` z imenom, priimkom, e-pošto, oddelkom, vlogo in stanjem.
+Gesla/geselskega hasha ne vrne. Brez žetona odgovori s HTTP 401.

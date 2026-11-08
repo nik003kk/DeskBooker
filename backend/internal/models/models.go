@@ -11,6 +11,14 @@ const (
     RoleAdmin UserRole = "admin"
 )
 
+type UserStatus string
+
+const (
+    UserActive UserStatus = "active"
+    UserInactive UserStatus = "inactive"
+    UserSuspended UserStatus = "suspended"
+)
+
 type ResourceType string
 
 const (
@@ -36,6 +44,7 @@ type User struct {
     FirstName string
     LastName string
     Role UserRole
+    Status UserStatus
     Department *string
     CreatedAt time.Time
 }

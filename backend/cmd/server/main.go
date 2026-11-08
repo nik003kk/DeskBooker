@@ -48,12 +48,13 @@ func main() {
     store := repository.New(pool)
     srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.NewRouterWithJWT(
+		Handler:           server.NewRouterWithProfile(
             pool, allowedOrigins,
             auth.RegisterHandler(store, os.Getenv("REGISTRATION_EMAIL_DOMAIN")),
             auth.LoginHandlerWithJWT(store, tokens),
             auth.RequireJWT(tokens),
             auth.MeHandler(store),
+            auth.ProfileHandler(store),
         ),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
