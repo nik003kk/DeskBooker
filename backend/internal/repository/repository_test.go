@@ -80,3 +80,14 @@ func TestListErrorsPropagate(t *testing.T) {
     if err == nil || !strings.Contains(err.Error(), "offline") { t.Fatalf("expected DB error: %v", err) }
     if !strings.Contains(db.sql, "is_active=TRUE") { t.Fatalf("missing active filter: %s", db.sql) }
 }
+
+func TestCreateResourceRejectsNegativeFloorBeforeQuery(t *testing.T) {
+    floor:=-1
+    db:=&stubDB{}
+    _,err:=New(db).CreateResource(context.Background(),models.CreateResourceInput{
+        Name:"Desk",Type:models.ResourceDesk,Floor:&floor,Capacity:1,
+    })
+    if !errors.Is(err,models.ErrInvalidResource) || db.sql!="" {
+        t.Fatalf("expected validation before SQL: err=%v query=%s",err,db.sql)
+    }
+}
