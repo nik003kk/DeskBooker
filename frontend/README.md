@@ -229,3 +229,12 @@ in termin pred končno potrditvijo. `POST /api/reservations` z JWT ustvari
 potrjeno rezervacijo in vrne štirimestni check-in PIN. Konflikt termina
 (HTTP 409) uporabniku pove, da mora izbrati drug čas. Čas se pretvori
 iz Europe/Ljubljana v UTC, brez odvisnosti od lokalne nastavitve računalnika.
+
+## Zaslon uspešne rezervacije (DB-056)
+
+Po uspešnem `POST /api/reservations` je uporabnik preusmerjen na
+`/reservations/success`. Ta zaslon prikaže potrjeni vir, termin,
+status, referenco rezervacije in štirimestni check-in PIN (vključno z
+vodilnimi ničlami). PIN je del začasnega React Router state, **ne** URL,
+localStorage ali sessionStorage. Po osvežitvi lahko prikaz izgine;
+uporabnika opozorimo, naj zaradi tega ne rezervira istega vira znova.
