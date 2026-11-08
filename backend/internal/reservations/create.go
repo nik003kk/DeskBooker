@@ -44,7 +44,7 @@ func CreateHandler(store Creator)gin.HandlerFunc{
   if err=dec.Decode(&req);err!=nil {fail(c,400,"invalid_json","Invalid reservation JSON");return}
   var extra any
   if err=dec.Decode(&extra);!errors.Is(err,io.EOF){fail(c,400,"invalid_json","Only one JSON object allowed");return}
-  if !validUUID(req.ResourceID)||req.StartsAt.IsZero()||req.EndsAt.IsZero()||!req.EndsAt.After(req.StartsAt){
+  if !validUUID(req.ResourceID)||ValidateWindow(time.Now(),req.StartsAt,req.EndsAt)!=nil{
    fail(c,400,"invalid_reservation","Invalid resource or time interval");return
   }
   saved,err:=store.CreateConfirmedReservation(c.Request.Context(),models.CreateReservationInput{
