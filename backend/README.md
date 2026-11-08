@@ -362,3 +362,12 @@ HTTP 401 pomeni neprijavljenega, 403 pa uporabnika brez dovoljenja.
 Telo: `{"name":"Miza 1","type":"DESK","capacity":1,"floor":1}`.
 `is_active` je privzeto `true`. Uspeh vrne HTTP 201 in nov vir.
 Testiraj z `go test ./... && go vet ./... && go build ./...`.
+
+## Oprema in lastnosti virov (DB-034)
+
+`POST /api/resources/:id/features` je zaščiten z JWT in vlogo
+`manager`/`admin`. Zahtevek `{"features":["Monitor","USB-C"]}`
+doda največ 20 lastnosti. Podvojitve v zahtevku se zavrnejo,
+obstoječe lastnosti v bazi se ne podvajajo (case-insensitive unique
+index). En sam SQL INSERT ohranja atomarnost celotnega seznama.
+Odgovor HTTP 201 vrne shranjene lastnosti. Neznan vir vrne HTTP 404.
