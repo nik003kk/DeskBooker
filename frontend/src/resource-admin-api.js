@@ -47,3 +47,10 @@ export async function createResourceWithFeatures(values, { token, logout, apiBas
   }
   return data.resource
 }
+
+export async function listAdminResources({ token,logout,apiBaseUrl,fetchImpl=fetch }={}) {
+  const response=await authorizedFetch('/admin/resources',{token,logout,apiBaseUrl,fetchImpl})
+  const body=await response.json()
+  if (!Array.isArray(body?.resources))throw new Error('Strežnik je vrnil neveljaven seznam virov.')
+  return body.resources
+}
