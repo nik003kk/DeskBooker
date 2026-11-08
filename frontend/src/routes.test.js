@@ -13,7 +13,7 @@ test('all navigation paths are unique and absolute', () => {
 test('primary navigation covers home, resources, reservations and login and registration', () => {
   assert.equal(navigation[0].path, paths.home)
   assert.equal(navigation[0].end, true)
-  for (const path of [paths.desks, paths.rooms, paths.parking, paths.equipment, paths.reservations, paths.login, paths.register, paths.profile, paths.search]) {
+  for (const path of [paths.desks, paths.rooms, paths.parking, paths.equipment, paths.reservations, paths.login, paths.register, paths.profile, paths.search, paths.bookingConfirm]) {
     assert.ok(navigation.some((route) => route.path === path), `missing route ${path}`)
   }
 })
