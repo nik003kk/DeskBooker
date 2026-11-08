@@ -190,3 +190,18 @@ func (s *Store) ConfirmReservation(ctx context.Context, id string, at time.Time)
     if err != nil { return models.Reservation{}, fmt.Errorf("confirm reservation: %w", err) }
     return r, nil
 }
+
+// GetUserByEmail retrieves the stored password hash for authentication.
+// Callers must not expose the returned User directly as a JSON response.
+// The database unique index on LOWER(email) ensures a single match.
+func (s *Store) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+    if email == "" {
+        return models.User{}, errors.New("email is required")
+    }
+    u, err := scanUser(s.db.QueryRow(ctx,
+        "SELECT "+userColumns+" FROM public.users WHERE LOWER(email)=LOWER($1)", email))
+    if err != nil {
+        return models.User{}, fmt.Errorf("get user by email: %w", err)
+    }
+    return u, nil
+}
