@@ -353,3 +353,12 @@ Zaščiten `PATCH /api/users/me` spremeni le `first_name`,
 vrednost. `email`, `role` in `status` ni dovoljeno spreminjati;
 neznana polja vrnejo HTTP 400. Po uspešnem popravku vrne HTTP 200
 in varni `UserDTO`. Migracija ostane na verziji 8.
+
+## Dodajanje rezervacijskih virov (DB-033)
+
+`POST /api/resources` ustvari vir tipa `DESK`, `MEETING_ROOM` ali
+`PARKING_SPOT`. Zahteva Bearer JWT in vlogo `manager` ali `admin`.
+HTTP 401 pomeni neprijavljenega, 403 pa uporabnika brez dovoljenja.
+Telo: `{"name":"Miza 1","type":"DESK","capacity":1,"floor":1}`.
+`is_active` je privzeto `true`. Uspeh vrne HTTP 201 in nov vir.
+Testiraj z `go test ./... && go vet ./... && go build ./...`.
