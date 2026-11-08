@@ -17,8 +17,9 @@ type fakeCreator struct{called int;input models.CreateReservationInput;err error
 func(s *fakeCreator)CreateConfirmedReservation(_ context.Context,in models.CreateReservationInput)(models.Reservation,error){
  s.called++;s.input=in
  if s.err!=nil{return models.Reservation{},s.err}
+ pin:="0042"
  return models.Reservation{ID:"reservation",ResourceID:in.ResourceID,UserID:in.UserID,
-  StartsAt:in.StartsAt,EndsAt:in.EndsAt,Status:models.ReservationConfirmed},nil
+  StartsAt:in.StartsAt,EndsAt:in.EndsAt,Status:models.ReservationConfirmed,CheckInCode:&pin},nil
 }
 func createTest(t *testing.T,store *fakeCreator,body string,authorized bool)*httptest.ResponseRecorder{
  t.Helper();gin.SetMode(gin.TestMode)
@@ -36,7 +37,8 @@ func TestCreateReservationUsesTrustedJWTSubject(t *testing.T){
  body:=`{"resource_id":"`+resourceID+`","starts_at":"2026-11-10T09:00:00+01:00","ends_at":"2026-11-10T10:00:00+01:00"}`
  response:=createTest(t,store,body,true)
  if response.Code!=201||store.called!=1||store.input.UserID!="trusted-user"||
-  !strings.Contains(response.Body.String(),`"status":"CONFIRMED"`) {t.Fatalf("%d %s",response.Code,response.Body.String())}
+  !strings.Contains(response.Body.String(),`"status":"CONFIRMED"`)||
+  !strings.Contains(response.Body.String(),`"check_in_pin":"0042"`) {t.Fatalf("%d %s",response.Code,response.Body.String())}
  if noAuth:=createTest(t,store,body,false);noAuth.Code!=401||store.called!=1{t.Fatalf("unauthorized %d",noAuth.Code)}
 }
 func TestCreateReservationRejectsInjectedFields(t *testing.T){
