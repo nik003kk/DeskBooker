@@ -6,6 +6,7 @@ import RegisterPage from './components/RegisterPage.jsx'
 import LoginPage from './components/LoginPage.jsx'
 import { useAuth } from './AuthContext.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import ProfilePage from './components/ProfilePage.jsx'
 
 const resourceSamples = {
   [paths.desks]: [
@@ -200,7 +201,7 @@ function Navigation() {
   const { isAuthenticated, user, logout } = useAuth()
   return (
     <nav className="site-nav" aria-label="Glavna navigacija">
-      {navigation.map(({ path, label, end }) => (
+      {navigation.filter(({path}) => path !== paths.profile || isAuthenticated).map(({ path, label, end }) => (
         <NavLink
           key={path}
           to={path}
@@ -239,6 +240,7 @@ export default function App() {
               element={<ResourcePage path={path} title={label} description={description} />}
             />
           ))}
+          <Route path={paths.profile} element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path={paths.reservations} element={<ProtectedRoute><ComingSoonPage title="Moje rezervacije" description="Tukaj boš spremljal in upravljal svoje rezervacije." /></ProtectedRoute>} />
           <Route path={paths.register} element={<RegisterPage />} />
           <Route path={paths.login} element={<LoginPage />} />
