@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Card, StatusBadge } from './ui.jsx'
 import { useAuth } from '../AuthContext.jsx'
 import { accountStatusLabel, fetchProfile } from '../profile.js'
+import EditProfileForm from './EditProfileForm.jsx'
 
 export default function ProfilePage() {
   const { token, logout } = useAuth()
@@ -36,6 +37,7 @@ export default function ProfilePage() {
             <div><dt>Vloga</dt><dd>{profile.role}</dd></div>
             <div><dt>Stanje računa</dt><dd>{accountStatusLabel(profile.status)}</dd></div>
           </dl>
+          <EditProfileForm key={profile.id} user={profile} onSaved={setProfile} />
         </>
       )}
     </Card>

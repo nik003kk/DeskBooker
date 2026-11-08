@@ -155,3 +155,7 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .profile-details dt { font-weight: 700; color: var(--muted); }
 .profile-details dd { margin: 0; overflow-wrap: anywhere; }
 @media (max-width: 480px) { .profile-details > div { grid-template-columns: 1fr; gap: 4px; } }
+
+.profile-edit { border-top: 1px solid var(--line); padding-top: 25px; margin-top: 26px; }
+.profile-edit h2 { margin-bottom: 9px; }
+.profile-edit form { margin-top: 16px; }
