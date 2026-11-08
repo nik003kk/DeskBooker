@@ -382,3 +382,12 @@ znotraj repository-ja. Podvojeno ime brez razlikovanja velikosti črk
 vrne HTTP 409. Migracija `000009_resource_validation` zagotavlja
 `floor >= 0` tudi neposredno v PostgreSQL. Po `go run ./cmd/migrate up`
 pričakuj verzijo **9, dirty: false**.
+
+## Urejanje vira (DB-038)
+
+Upravitelj lahko s `PATCH /api/resources/:id` popravi `name`, `type`,
+`floor` (tudi `null`), `capacity`, `is_active` in `features` (seznam,
+tudi prazen za odstranitev opreme). JWT in vloga manager/admin sta obvezna.
+Spremembe osnovnega vira in opreme so **atomske v eni PostgreSQL
+transakciji**, z zaklepanjem zapisa vira. Uspeh: HTTP 200; neznan vir:
+404; neveljavni podatki: 400; podvojen naziv: 409.
