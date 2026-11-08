@@ -433,3 +433,10 @@ API zahteva JWT. Vir brez ID-ja v bazi vrne HTTP 404.
 `GET /api/resources?features=Monitor,USB-C` vrne samo aktivne vire, ki imajo **obe** lastnosti.
 Poizvedba uporablja `NOT EXISTS` nad `unnest($4::text[])`, parametre veže varno;
 prazen seznam pomeni brez filtra. Filtriranje ne spreminja izločanja zasedenih terminov.
+
+## Rezultati iskanja z opremo (DB-049)
+
+`GET /api/resources` vrne polje `resources`. Vsak rezultat vključuje
+`features: []` ali seznam dejanskih lastnosti iz `resource_features`.
+Neuspešno branje opreme vrne sanitized HTTP 500, ne nepopolnih rezultatov.
+Za zaščiteno pot zadostuje veljaven JWT uporabnika `employee`.
