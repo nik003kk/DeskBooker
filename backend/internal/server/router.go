@@ -41,6 +41,12 @@ func NewRouterWithJWT(db DatabasePinger, allowedOrigins map[string]struct{},
 // NewRouterWithProfile adds authenticated profile retrieval.
 func NewRouterWithProfile(db DatabasePinger, allowedOrigins map[string]struct{},
     register, login, requireJWT, me, profile gin.HandlerFunc) *gin.Engine {
+    return NewRouterWithProfileUpdate(db, allowedOrigins, register, login, requireJWT, me, profile, nil)
+}
+
+// NewRouterWithProfileUpdate supports authenticated profile edits.
+func NewRouterWithProfileUpdate(db DatabasePinger, allowedOrigins map[string]struct{},
+    register, login, requireJWT, me, profile, updateProfile gin.HandlerFunc) *gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -68,6 +74,9 @@ func NewRouterWithProfile(db DatabasePinger, allowedOrigins map[string]struct{},
     }
     if requireJWT != nil && profile != nil {
         api.GET("/users/me", requireJWT, profile)
+    }
+    if requireJWT != nil && updateProfile != nil {
+        api.PATCH("/users/me", requireJWT, updateProfile)
     }
 
 	api.GET("/health", func(c *gin.Context) {
