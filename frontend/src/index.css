@@ -149,3 +149,9 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 
 .auth-logout { background: none; border: none; font: inherit; cursor: pointer; }
 .auth-logout:hover { background: #fff0f2; color: #af2437; }
+
+.profile-details { margin-top: 22px; display: grid; gap: 0; }
+.profile-details > div { display: grid; grid-template-columns: minmax(130px, .7fr) 1fr; padding: 15px 0; gap: 12px; border-bottom: 1px solid var(--line); }
+.profile-details dt { font-weight: 700; color: var(--muted); }
+.profile-details dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) { .profile-details > div { grid-template-columns: 1fr; gap: 4px; } }

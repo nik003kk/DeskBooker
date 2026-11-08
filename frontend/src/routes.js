@@ -8,6 +8,7 @@ export const paths = Object.freeze({
   reservations: '/my-reservations',
   login: '/login',
   register: '/register',
+  profile: '/profile',
 })
 
 export const sections = Object.freeze([
@@ -23,4 +24,5 @@ export const navigation = Object.freeze([
   { path: paths.reservations, label: 'Moje rezervacije', end: false },
   { path: paths.login, label: 'Prijava', end: false },
   { path: paths.register, label: 'Registracija', end: false },
+  { path: paths.profile, label: 'Moj profil', end: false },
 ])
