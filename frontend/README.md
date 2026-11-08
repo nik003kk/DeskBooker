@@ -192,3 +192,10 @@ Naslednje naloge DB-047–049 dodajajo vnos filtrov, kartice in povezavo z API-j
 Na `/search` je izbor vrste vira, datuma, ure od/do in opreme, ločene z vejicami.
 Preverjanje zahteva vsa tri časovna polja ali nobenega, časovno pravilno zaporedje,
 in do 20 različnih lastnosti. Povezava z API-jem je naloga DB-049.
+
+## Kartica rezultata (DB-048)
+
+Komponenta `ResourceResultCard` prikazuje naziv, tip, nadstropje, kapaciteto
+in razpoložljivo opremo. Gumb »Rezerviraj (kmalu)« je namenoma onemogočen,
+ker ustvarjanje rezervacije še ni implementirano. Do DB-049 je na strani
+prikazan jasno označen primer kartice, ne rezultat iz baze.
