@@ -288,3 +288,22 @@ Zadnji ukaz potrebuje zagnan lokalni PostgreSQL z migracijo **7**
 in preveri shranjeni hash ter gesla. Testni podatki se povrnejo
 z `ROLLBACK`. Podrobnosti:
 [`docs/password-security.md`](../docs/password-security.md).
+
+## Prijava – preverjanje e-pošte in gesla (DB-023)
+
+`POST /api/auth/login` preveri lokalno registrirani račun prek
+`GetUserByEmail` in `VerifyPassword`. Na uspeh vrne HTTP 200
+in varni `UserDTO`, na neznan e-naslov ali napačno geslo HTTP 401.
+API ne vrača hasha in ne ustvarja seje ali žetona.
+
+```bash
+go test ./...
+go vet ./...
+go build ./...
+go run ./cmd/server
+```
+
+Za ročni preizkus na lokalni bazi (migracije **7**) glej
+[`docs/login-api.md`](../docs/login-api.md), kjer so primeri
+za HTTP 200 in 401. Za javno uporabo bosta potrebna HTTPS in
+omejevanje pogostosti poskusov prijave.
