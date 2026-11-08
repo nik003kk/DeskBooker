@@ -307,3 +307,22 @@ Za ročni preizkus na lokalni bazi (migracije **7**) glej
 [`docs/login-api.md`](../docs/login-api.md), kjer so primeri
 za HTTP 200 in 401. Za javno uporabo bosta potrebna HTTPS in
 omejevanje pogostosti poskusov prijave.
+
+## JWT avtentikacija (DB-024)
+
+Obvezen je naključno ustvarjen `JWT_SECRET` (vsaj 32 bajtov) v **korenski** `.env`:
+
+```bash
+openssl rand -hex 32
+```
+
+Izpis shrani v `.env` kot `JWT_SECRET=<izpis>`. Ne v Git in ne v `VITE_*`.
+Strežnik se brez veljavnega ključa ne zažene.
+
+`POST /api/auth/login` ob pravilnih poverilnicah vrne kratkoživeči
+podpisani `access_token` (HS256, **15 minut**) in `token_type: Bearer`.
+Zaščitena pot `GET /api/auth/me` zahteva
+`Authorization: Bearer <access_token>` in vrne varne podatke prijavljenega
+uporabnika. Manjkajoč, spremenjen ali potekel žeton vrne HTTP **401**.
+
+Primeri in varnostne omejitve: [`docs/jwt-authentication.md`](../docs/jwt-authentication.md).

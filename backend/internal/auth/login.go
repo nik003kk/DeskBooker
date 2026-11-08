@@ -26,9 +26,17 @@ type loginRequest struct {
     Password string `json:"password"`
 }
 
-// LoginHandler checks credentials but deliberately does not issue a session,
-// cookie or token. Session-based authentication is a separate follow-up.
+// LoginHandler preserves the DB-023 credential-only flow for existing tests.
 func LoginHandler(store UserFinder) gin.HandlerFunc {
+    return loginHandler(store, nil)
+}
+
+// LoginHandlerWithJWT issues a short-lived signed token on successful login.
+func LoginHandlerWithJWT(store UserFinder, tokens *JWTService) gin.HandlerFunc {
+    return loginHandler(store, tokens)
+}
+
+func loginHandler(store UserFinder, tokens *JWTService) gin.HandlerFunc {
     return func(c *gin.Context) {
         c.Header("Cache-Control", "no-store")
         mediaType, _, mediaErr := mime.ParseMediaType(c.GetHeader("Content-Type"))
@@ -71,6 +79,18 @@ func LoginHandler(store UserFinder) gin.HandlerFunc {
             return
         }
 
+        if tokens != nil {
+            token, expiresAt, issueErr := tokens.Issue(user.ID)
+            if issueErr != nil {
+                responseError(c, http.StatusInternalServerError, "login_failed", "Could not sign in")
+                return
+            }
+            c.JSON(http.StatusOK, gin.H{
+                "user": user.Public(), "access_token": token,
+                "token_type": "Bearer", "expires_at": expiresAt,
+            })
+            return
+        }
         c.JSON(http.StatusOK, gin.H{"user": user.Public()})
     }
 }

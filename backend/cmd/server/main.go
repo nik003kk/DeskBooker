@@ -30,6 +30,11 @@ func main() {
 		log.Fatalf("Neveljavna CORS konfiguracija: %v", err)
 	}
 
+    tokens, err := auth.NewJWTService(os.Getenv("JWT_SECRET"))
+    if err != nil {
+        log.Fatalf("Neveljavna konfiguracija JWT: %v", err)
+    }
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -43,10 +48,12 @@ func main() {
     store := repository.New(pool)
     srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.NewRouterWithAuth(
+		Handler:           server.NewRouterWithJWT(
             pool, allowedOrigins,
             auth.RegisterHandler(store, os.Getenv("REGISTRATION_EMAIL_DOMAIN")),
-            auth.LoginHandler(store),
+            auth.LoginHandlerWithJWT(store, tokens),
+            auth.RequireJWT(tokens),
+            auth.MeHandler(store),
         ),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
