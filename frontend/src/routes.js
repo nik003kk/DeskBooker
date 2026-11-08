@@ -9,6 +9,8 @@ export const paths = Object.freeze({
   login: '/login',
   register: '/register',
   profile: '/profile',
+  adminResources: '/admin/resources',
+  createResource: '/admin/resources/new',
 })
 
 export const sections = Object.freeze([
@@ -25,4 +27,5 @@ export const navigation = Object.freeze([
   { path: paths.login, label: 'Prijava', end: false },
   { path: paths.register, label: 'Registracija', end: false },
   { path: paths.profile, label: 'Moj profil', end: false },
+  { path: paths.createResource, label: 'Dodaj vir', end: false },
 ])

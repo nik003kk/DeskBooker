@@ -151,3 +151,11 @@ Na `/profile` lahko spremeniš ime, priimek in oddelek. Obrazec
 validira podatke pred pošiljanjem, uporablja zaščiten `PATCH
 /api/users/me` in po uspehu osveži prikazane podatke. Prazni oddelek
 se pošlje kot `null`; e-pošte ali vloge ni mogoče urejati.
+
+## Dodajanje virov (DB-036)
+
+Upravitelj ali skrbnik lahko na `/admin/resources/new` doda mizo, sejno sobo
+ali parkirišče, nastavi nadstropje, kapaciteto, aktivnost in opremo.
+Obrazec preveri polja; za ustvarjanje uporabi `POST /api/resources`,
+za opremo pa `POST /api/resources/:id/features`. Ker sta to ločena zahtevka,
+ob napaki shranjevanja opreme sporočilo pove, da je bil vir že ustvarjen.
