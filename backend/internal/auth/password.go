@@ -2,6 +2,7 @@ package auth
 
 import (
     "errors"
+    "strings"
 
     "golang.org/x/crypto/bcrypt"
 )
@@ -22,7 +23,7 @@ const (
 // HashPassword validates a raw password and returns a salted bcrypt hash.
 // Never persist the raw password or include the hash in public DTOs.
 func HashPassword(password string) (string, error) {
-    if len(password) < minPasswordBytes || len(password) > maxPasswordBytes {
+    if len(password) < minPasswordBytes || len(password) > maxPasswordBytes || strings.TrimSpace(password) == "" {
         return "", ErrInvalidPassword
     }
     hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
