@@ -2,11 +2,13 @@
 package auth
 
 import (
+    "context"
     "encoding/json"
     "errors"
     "io"
     "net/http"
     "net/mail"
+    "mime"
     "strings"
     "unicode"
     "unicode/utf8"
@@ -16,7 +18,6 @@ import (
     "golang.org/x/crypto/bcrypt"
 
     "github.com/nik003kk/DeskBooker/backend/internal/models"
-    "context"
 )
 
 const maxRegistrationBody = 8 << 10 // 8 KiB
@@ -73,7 +74,8 @@ func RegisterHandler(store UserCreator, companyDomain string) gin.HandlerFunc {
             responseError(c, http.StatusServiceUnavailable, "registration_unavailable", "Registration is not configured")
             return
         }
-        if !strings.HasPrefix(strings.ToLower(c.GetHeader("Content-Type")), "application/json") {
+        mediaType, _, mediaErr := mime.ParseMediaType(c.GetHeader("Content-Type"))
+        if mediaErr != nil || mediaType != "application/json" {
             responseError(c, http.StatusUnsupportedMediaType, "unsupported_media_type", "Expected application/json")
             return
         }
