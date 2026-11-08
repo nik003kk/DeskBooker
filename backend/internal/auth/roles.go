@@ -37,7 +37,7 @@ func RequireRoles(store RoleLookup, roles ...models.UserRole) gin.HandlerFunc {
             c.Abort()
             return
         }
-        if !allowed[user.Role] {
+        if user.Status != models.UserActive || !allowed[user.Role] {
             responseError(c, http.StatusForbidden, "forbidden", "Insufficient permissions")
             c.Abort()
             return
