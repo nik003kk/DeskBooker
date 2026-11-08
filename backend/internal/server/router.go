@@ -17,7 +17,13 @@ type DatabasePinger interface {
 // NewRouter sets up REST JSON routes, CORS and middleware for DeskBooker.
 // The caller must supply an explicit allowlist of frontend origins.
 func NewRouter(db DatabasePinger, allowedOrigins map[string]struct{}) *gin.Engine {
-	router := gin.New()
+    return NewRouterWithRegistration(db, allowedOrigins, nil)
+}
+
+// NewRouterWithRegistration optionally exposes the registration endpoint.
+// Existing health-only tests can continue using NewRouter.
+func NewRouterWithRegistration(db DatabasePinger, allowedOrigins map[string]struct{}, register gin.HandlerFunc) *gin.Engine {
+    router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
 	router.NoRoute(func(c *gin.Context) {
@@ -33,6 +39,10 @@ func NewRouter(db DatabasePinger, allowedOrigins map[string]struct{}) *gin.Engin
 	router.HandleMethodNotAllowed = true
 
 	api := router.Group("/api")
+    if register != nil {
+        api.POST("/auth/register", register)
+    }
+
 	api.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "ok",
