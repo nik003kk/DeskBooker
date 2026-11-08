@@ -47,6 +47,13 @@ func NewRouterWithProfile(db DatabasePinger, allowedOrigins map[string]struct{},
 // NewRouterWithProfileUpdate supports authenticated profile edits.
 func NewRouterWithProfileUpdate(db DatabasePinger, allowedOrigins map[string]struct{},
     register, login, requireJWT, me, profile, updateProfile gin.HandlerFunc) *gin.Engine {
+    return NewRouterWithResources(db, allowedOrigins, register, login, requireJWT, me, profile, updateProfile, nil, nil)
+}
+
+// NewRouterWithResources enables role-restricted resource creation.
+func NewRouterWithResources(db DatabasePinger, allowedOrigins map[string]struct{},
+    register, login, requireJWT, me, profile, updateProfile,
+    requireManager, createResource gin.HandlerFunc) *gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -77,6 +84,9 @@ func NewRouterWithProfileUpdate(db DatabasePinger, allowedOrigins map[string]str
     }
     if requireJWT != nil && updateProfile != nil {
         api.PATCH("/users/me", requireJWT, updateProfile)
+    }
+    if requireJWT != nil && requireManager != nil && createResource != nil {
+        api.POST("/resources", requireJWT, requireManager, createResource)
     }
 
 	api.GET("/health", func(c *gin.Context) {
