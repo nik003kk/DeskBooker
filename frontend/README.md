@@ -166,3 +166,10 @@ ob napaki shranjevanja opreme sporočilo pove, da je bil vir že ustvarjen.
 Za podatke uporablja zaščiten `GET /api/admin/resources`; prikazuje naziv,
 tip, nadstropje, kapaciteto in stanje. Neprijavljeni uporabniki
 in uporabniki brez upraviteljskih pravic ne dobijo dostopa do API-ja.
+
+## Urejanje vira (DB-040)
+
+Upravljalec lahko iz seznama odpre predizpolnjen obrazec
+`/admin/resources/:id/edit`. Obrazec naloži vir in opremo prek
+`GET /api/admin/resources/:id` ter pošlje vse spremembe v enem
+`PATCH /api/resources/:id`; backend spremembe zapiše v eni transakciji.
