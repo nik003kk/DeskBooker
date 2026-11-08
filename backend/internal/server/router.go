@@ -98,6 +98,15 @@ func NewRouterWithSearch(db DatabasePinger,allowedOrigins map[string]struct{},
 // NewRouterWithAvailability checks whether a particular resource is free.
 func NewRouterWithAvailability(db DatabasePinger,allowedOrigins map[string]struct{},
  register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList,editResource,activation,adminDetail,searchResources,availability gin.HandlerFunc)*gin.Engine {
+    return NewRouterWithReservations(db,allowedOrigins,register,login,requireJWT,me,profile,updateProfile,
+      requireManager,createResource,addFeatures,adminList,editResource,activation,adminDetail,
+      searchResources,availability,nil)
+}
+
+// NewRouterWithReservations enables JWT-protected booking creation.
+func NewRouterWithReservations(db DatabasePinger,allowedOrigins map[string]struct{},
+ register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,
+ adminList,editResource,activation,adminDetail,searchResources,availability,createReservation gin.HandlerFunc)*gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -136,6 +145,7 @@ func NewRouterWithAvailability(db DatabasePinger,allowedOrigins map[string]struc
     if requireJWT!=nil && requireManager!=nil && editResource!=nil {api.PATCH("/resources/:id",requireJWT,requireManager,editResource)}
     if requireJWT!=nil && availability!=nil {api.GET("/resources/:id/availability",requireJWT,availability)}
     if requireJWT!=nil && searchResources!=nil {api.GET("/resources",requireJWT,searchResources)}
+    if requireJWT!=nil && createReservation!=nil {api.POST("/reservations",requireJWT,createReservation)}
     if requireJWT!=nil && requireManager!=nil && adminDetail!=nil {api.GET("/admin/resources/:id",requireJWT,requireManager,adminDetail)}
     if requireJWT!=nil && requireManager!=nil && adminList!=nil {api.GET("/admin/resources",requireJWT,requireManager,adminList)}
     if requireJWT != nil && requireManager != nil && addFeatures != nil {
