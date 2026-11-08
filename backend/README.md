@@ -391,3 +391,11 @@ tudi prazen za odstranitev opreme). JWT in vloga manager/admin sta obvezna.
 Spremembe osnovnega vira in opreme so **atomske v eni PostgreSQL
 transakciji**, z zaklepanjem zapisa vira. Uspeh: HTTP 200; neznan vir:
 404; neveljavni podatki: 400; podvojen naziv: 409.
+
+## Aktivacija in deaktivacija vira (DB-039)
+
+`PATCH /api/resources/:id/activation` sprejme `{"is_active":false}`
+ali `{"is_active":true}`. Pot zahteva JWT in vlogo manager/admin.
+Spremeni samo status vira. Vira in rezervacij **ne izbriše**, tako da
+zgodovina rezervacij ostane dostopna; neaktivni viri ne bodo vidni v
+iskanju prostih virov. Ponovni klic z enako vrednostjo je varen.
