@@ -239,3 +239,19 @@ func (s *Store) AddFeatures(ctx context.Context, resourceID string, names []stri
     if err != nil { return nil, fmt.Errorf("insert features: %w", err) }
     return s.ListFeatures(ctx, resourceID)
 }
+
+ 
+// ListAllResources includes inactive records for authorized managers.
+func (s *Store) ListAllResources(ctx context.Context) ([]models.Resource,error) {
+ rows,err:=s.db.Query(ctx,"SELECT "+resourceColumns+" FROM public.resources ORDER BY name,id")
+ if err!=nil{return nil,fmt.Errorf("list all resources: %w",err)}
+ defer rows.Close()
+ result:=make([]models.Resource,0)
+ for rows.Next(){
+   item,e:=scanResource(rows)
+   if e!=nil{return nil,fmt.Errorf("scan resource: %w",e)}
+   result=append(result,item)
+ }
+ if err:=rows.Err();err!=nil{return nil,fmt.Errorf("iterate resources: %w",err)}
+ return result,nil
+}
