@@ -40,11 +40,13 @@ func main() {
 	defer pool.Close()
 	log.Println("Povezava s PostgreSQL je uspešno vzpostavljena")
 
-	srv := &http.Server{
+    store := repository.New(pool)
+    srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.NewRouterWithRegistration(
+		Handler:           server.NewRouterWithAuth(
             pool, allowedOrigins,
-            auth.RegisterHandler(repository.New(pool), os.Getenv("REGISTRATION_EMAIL_DOMAIN")),
+            auth.RegisterHandler(store, os.Getenv("REGISTRATION_EMAIL_DOMAIN")),
+            auth.LoginHandler(store),
         ),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
