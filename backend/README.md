@@ -414,8 +414,7 @@ Prijavljen uporabnik lahko kliče `GET /api/resources` z neobveznimi
 parametri `type=DESK`, `date=2026-11-09`, `start=09:00`,
 `end=17:00` in `features=Monitor,USB-C`. Vsi trije časovni parametri
 morajo biti prisotni skupaj; interpretirani so v časovnem pasu
-`Europe/Ljubljana`. V tej različici več izbranih lastnosti pomeni
-**vsaj eno**; naloga DB-045 bo dodala pogoj za **vse** lastnosti.
+`Europe/Ljubljana`. Od DB-045 dalje več izbranih lastnosti pomeni **vse** navedene lastnosti (logični IN).
 Poizvedba izloča neaktivne in časovno zasedene vire.
 
 ## Razpoložljivost virov (DB-044)
@@ -428,3 +427,9 @@ polodprti: konec ene rezervacije se lahko stika z začetkom druge.
 Neveljavni datumi, ure, časovni presledki in neobstoječi časi ob
 spomladanskem prehodu na poletni čas vrnejo HTTP 400.
 API zahteva JWT. Vir brez ID-ja v bazi vrne HTTP 404.
+
+## Filtriranje po vseh lastnostih (DB-045)
+
+`GET /api/resources?features=Monitor,USB-C` vrne samo aktivne vire, ki imajo **obe** lastnosti.
+Poizvedba uporablja `NOT EXISTS` nad `unnest($4::text[])`, parametre veže varno;
+prazen seznam pomeni brez filtra. Filtriranje ne spreminja izločanja zasedenih terminov.

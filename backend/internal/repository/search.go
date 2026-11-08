@@ -10,7 +10,7 @@ import (
 
 // SearchResources returns active resources matching filters.
 // A time window excludes overlapping PENDING / CONFIRMED reservations.
-// DB-045 will make multiple equipment filters use all-of matching.
+// Multiple equipment filters use all-of matching, not any-of.
 func (s *Store) SearchResources(ctx context.Context,filter models.ResourceSearch)([]models.Resource,error){
  var kind any
  if filter.Type!=nil {kind=string(*filter.Type)}
@@ -27,9 +27,10 @@ func (s *Store) SearchResources(ctx context.Context,filter models.ResourceSearch
     "SELECT 1 FROM public.reservations b "+
     "WHERE b.resource_id=r.id AND b.status IN ('PENDING','CONFIRMED') "+
     "AND b.starts_at < $3::timestamptz AND b.ends_at > $2::timestamptz)) "+
-  "AND (cardinality($4::text[])=0 OR EXISTS ("+
-    "SELECT 1 FROM public.resource_features f WHERE f.resource_id=r.id "+
-    "AND LOWER(f.feature)=ANY($4::text[]))) "+
+  "AND NOT EXISTS ("+
+    "SELECT 1 FROM unnest($4::text[]) AS wanted(feature) "+
+    "WHERE NOT EXISTS (SELECT 1 FROM public.resource_features f "+
+    "WHERE f.resource_id=r.id AND LOWER(f.feature)=wanted.feature)) "+
   "ORDER BY r.name,r.id"
  rows,err:=s.db.Query(ctx,query,kind,from,to,features)
  if err!=nil {return nil,fmt.Errorf("search resources: %w",err)}
