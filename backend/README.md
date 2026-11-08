@@ -268,3 +268,23 @@ API ne vrne gesla ali hasha in ne izda prijavne seje.
 
 Primeri, zahteve za geslo in lokalni preizkus:
 [`docs/registration-api.md`](../docs/registration-api.md).
+
+## Varnost gesel (DB-022)
+
+Centralizirani bcrypt funkciji `auth.HashPassword` in
+`auth.VerifyPassword` zagotavljata soljeno zgoščevanje ter preverjanje
+pravilnega/napačnega gesla. Registracija uporablja isti modul.
+Repository metoda `GetUserByEmail` omogoča bodočo prijavo; dejanski
+`POST /api/auth/login` je predmet DB-023.
+
+```bash
+go test ./...
+go vet ./...
+go build ./...
+go run ./cmd/password-smoke
+```
+
+Zadnji ukaz potrebuje zagnan lokalni PostgreSQL z migracijo **7**
+in preveri shranjeni hash ter gesla. Testni podatki se povrnejo
+z `ROLLBACK`. Podrobnosti:
+[`docs/password-security.md`](../docs/password-security.md).

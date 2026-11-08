@@ -15,7 +15,6 @@ import (
 
     "github.com/gin-gonic/gin"
     "github.com/jackc/pgx/v5/pgconn"
-    "golang.org/x/crypto/bcrypt"
 
     "github.com/nik003kk/DeskBooker/backend/internal/models"
 )
@@ -100,13 +99,11 @@ func RegisterHandler(store UserCreator, companyDomain string) gin.HandlerFunc {
             responseError(c, http.StatusBadRequest, "invalid_email", "A valid company email address is required")
             return
         }
-        if len(request.Password) < 12 || len(request.Password) > 72 ||
-            strings.TrimSpace(request.Password) == "" {
+        hashed, err := HashPassword(request.Password)
+        if errors.Is(err, ErrInvalidPassword) {
             responseError(c, http.StatusBadRequest, "invalid_password", "Password must be 12 to 72 bytes long")
             return
         }
-
-        hashed, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
         if err != nil {
             responseError(c, http.StatusInternalServerError, "registration_failed", "Could not register user")
             return
@@ -115,7 +112,7 @@ func RegisterHandler(store UserCreator, companyDomain string) gin.HandlerFunc {
             FirstName: request.FirstName,
             LastName: request.LastName,
             Email: email,
-            PasswordHash: string(hashed),
+            PasswordHash: hashed,
         })
         if err != nil {
             var pgErr *pgconn.PgError
