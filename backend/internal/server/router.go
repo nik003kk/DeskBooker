@@ -86,6 +86,12 @@ func NewRouterWithActivation(db DatabasePinger,allowedOrigins map[string]struct{
 // NewRouterWithAdminDetail provides prefilled resource editor data.
 func NewRouterWithAdminDetail(db DatabasePinger,allowedOrigins map[string]struct{},
  register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList,editResource,activation,adminDetail gin.HandlerFunc)*gin.Engine {
+    return NewRouterWithSearch(db,allowedOrigins,register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList,editResource,activation,adminDetail,nil)
+}
+
+// NewRouterWithSearch supports JWT-authenticated resource searches.
+func NewRouterWithSearch(db DatabasePinger,allowedOrigins map[string]struct{},
+ register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,adminList,editResource,activation,adminDetail,searchResources gin.HandlerFunc)*gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -122,6 +128,7 @@ func NewRouterWithAdminDetail(db DatabasePinger,allowedOrigins map[string]struct
     }
     if requireJWT!=nil && requireManager!=nil && activation!=nil {api.PATCH("/resources/:id/activation",requireJWT,requireManager,activation)}
     if requireJWT!=nil && requireManager!=nil && editResource!=nil {api.PATCH("/resources/:id",requireJWT,requireManager,editResource)}
+    if requireJWT!=nil && searchResources!=nil {api.GET("/resources",requireJWT,searchResources)}
     if requireJWT!=nil && requireManager!=nil && adminDetail!=nil {api.GET("/admin/resources/:id",requireJWT,requireManager,adminDetail)}
     if requireJWT!=nil && requireManager!=nil && adminList!=nil {api.GET("/admin/resources",requireJWT,requireManager,adminList)}
     if requireJWT != nil && requireManager != nil && addFeatures != nil {
