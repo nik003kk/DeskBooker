@@ -14,6 +14,7 @@ import (
  "github.com/jackc/pgx/v5"
  "github.com/jackc/pgx/v5/pgconn"
  "github.com/nik003kk/DeskBooker/backend/internal/models"
+ "github.com/nik003kk/DeskBooker/backend/internal/repository"
 )
 
 type Creator interface {
@@ -55,7 +56,8 @@ func CreateHandler(store Creator)gin.HandlerFunc{
     if pgErr.Code=="23P01" {fail(c,409,"reservation_conflict","The selected time is already booked");return}
     if pgErr.Code=="23503" {fail(c,404,"resource_not_found","Resource or user no longer exists");return}
    }
-   if errors.Is(err,pgx.ErrNoRows){fail(c,409,"resource_unavailable","Resource is not available");return}
+   if errors.Is(err,pgx.ErrNoRows){fail(c,404,"resource_not_found","Resource not found");return}
+   if errors.Is(err,repository.ErrResourceUnavailable){fail(c,409,"resource_unavailable","Resource is not active");return}
    fail(c,500,"reservation_failed","Could not create reservation");return
   }
   c.JSON(http.StatusCreated,gin.H{"reservation":saved.Public()})

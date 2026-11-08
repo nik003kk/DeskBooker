@@ -67,7 +67,7 @@ func main() {
             resources.AdminDetailHandler(store),
             resources.SearchHandler(store),
             resources.AvailabilityHandler(store),
-            reservations.CreateHandler(store),
+            reservations.CreateHandler(repository.NewBookingStore(pool)),
         ),
 		ReadHeaderTimeout: 5 * time.Second,
 	}

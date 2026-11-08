@@ -449,3 +449,12 @@ JWT določa lastnika; `user_id` iz telesa ni dovoljen. Na uspeh vrne
 HTTP **201** s stanjem `CONFIRMED`. Za že zaseden termin velja HTTP 409
 (PostgreSQL exclusion constraint iz migracije 7). Neaktivnega vira
 ni mogoče rezervirati. DB-051 bo dodal transakcijsko zaščito.
+
+## Varna sočasna rezervacija (DB-051)
+
+Strežnik uporablja `repository.NewBookingStore(pool)`. Transakcija
+zaklene vir z `SELECT ... FOR UPDATE`, zavrne neaktivne vire in vstavi
+rezervacijo s statusom `CONFIRMED` ter `confirmed_at`.
+PostgreSQL constraint `reservations_no_active_overlap` (migracija 7)
+prepreči prekrivanje tudi pri hkratnih poskusih (HTTP 409), po napaki
+transakcija izvede rollback. Neobstoječi vir vrne HTTP 404.
