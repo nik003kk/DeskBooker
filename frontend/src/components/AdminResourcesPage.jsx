@@ -4,12 +4,14 @@ import { Card, ButtonLink, StatusBadge } from './ui.jsx'
 import { paths } from '../routes.js'
 import { useAuth } from '../AuthContext.jsx'
 import { listAdminResources } from '../resource-admin-api.js'
+import { setResourceActive } from '../resource-activation.js'
 
 export default function AdminResourcesPage() {
   const { token, logout } = useAuth()
   const [items,setItems]=useState([])
   const [loading,setLoading]=useState(true)
   const [error,setError]=useState('')
+  const [changing,setChanging]=useState(null)
   const reload=useCallback(async()=>{
     setLoading(true);setError('')
     try {setItems(await listAdminResources({token,logout,apiBaseUrl:import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'}))}
@@ -17,6 +19,17 @@ export default function AdminResourcesPage() {
     finally{setLoading(false)}
   },[token,logout])
   useEffect(()=>{reload()},[reload])
+  async function changeActive(item){
+    if(changing)return
+    setChanging(item.id);setError('')
+    try{
+      const updated=await setResourceActive(item.id,!item.is_active,{
+        token,logout,apiBaseUrl:import.meta.env.VITE_API_BASE_URL||'http://localhost:8080/api',
+      })
+      setItems(current=>current.map(row=>row.id===item.id?updated:row))
+    }catch(e){setError(e.message||'Sprememba stanja ni uspela.')}
+    finally{setChanging(null)}
+  }
   return <Card className="admin-resource-page">
     <span className="eyebrow">Upravljanje</span>
     <div className="section-heading"><h1>Seznam virov</h1><ButtonLink to={paths.createResource}>Dodaj vir</ButtonLink></div>
@@ -25,10 +38,10 @@ export default function AdminResourcesPage() {
     {!loading && !error && !items.length && <p role="status">Ni ustvarjenih virov.</p>}
     {!loading && !error && items.length>0 &&
       <div className="admin-table-wrap"><table className="admin-table">
-        <thead><tr><th>Naziv</th><th>Vrsta</th><th>Nadstropje</th><th>Kapaciteta</th><th>Stanje</th><th>Uredi</th></tr></thead>
+        <thead><tr><th>Naziv</th><th>Vrsta</th><th>Nadstropje</th><th>Kapaciteta</th><th>Stanje</th><th>Dejanje</th><th>Uredi</th></tr></thead>
         <tbody>{items.map(item=><tr key={item.id}><td>{item.name}</td><td>{item.type}</td>
           <td>{item.floor ?? '—'}</td><td>{item.capacity}</td>
-          <td><StatusBadge tone={item.is_active?'blue':'neutral'}>{item.is_active?'Aktiven':'Neaktiven'}</StatusBadge></td><td><Link to={'/admin/resources/'+item.id+'/edit'}>Uredi</Link></td></tr>)}</tbody>
+          <td><StatusBadge tone={item.is_active?'blue':'neutral'}>{item.is_active?'Aktiven':'Neaktiven'}</StatusBadge></td><td><button type="button" className="ui-button ui-button--secondary" disabled={!!changing} onClick={()=>changeActive(item)} aria-label={(item.is_active?'Deaktiviraj ':'Aktiviraj ')+item.name}>{changing===item.id?'Shranjujem ...':item.is_active?'Deaktiviraj':'Aktiviraj'}</button></td><td><Link to={'/admin/resources/'+item.id+'/edit'}>Uredi</Link></td></tr>)}</tbody>
       </table></div>
     }
   </Card>
