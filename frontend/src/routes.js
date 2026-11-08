@@ -10,6 +10,7 @@ export const paths = Object.freeze({
   register: '/register',
   profile: '/profile',
   search: '/search',
+  bookingConfirm: '/reservations/confirm',
   adminResources: '/admin/resources',
   createResource: '/admin/resources/new',
   editResource: '/admin/resources/:id/edit',
