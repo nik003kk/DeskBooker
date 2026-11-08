@@ -2,7 +2,6 @@ package resources
 import (
  "context"
  "errors"
- "net/http"
  "net/http/httptest"
  "testing"
  "strings"
