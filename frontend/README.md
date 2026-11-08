@@ -186,3 +186,9 @@ ne briše.
 
 Zaščitena pot `/search` vsebuje odzivno postavitev za filtre in kartice z rezultati.
 Naslednje naloge DB-047–049 dodajajo vnos filtrov, kartice in povezavo z API-jem.
+
+## Filtri za iskanje (DB-047)
+
+Na `/search` je izbor vrste vira, datuma, ure od/do in opreme, ločene z vejicami.
+Preverjanje zahteva vsa tri časovna polja ali nobenega, časovno pravilno zaporedje,
+in do 20 različnih lastnosti. Povezava z API-jem je naloga DB-049.
