@@ -3,6 +3,7 @@ import { NavLink, Route, Routes } from 'react-router-dom'
 import { Button, ButtonLink, Card, Field, SelectField, StatusBadge } from './components/ui.jsx'
 import { navigation, paths, sections } from './routes.js'
 import RegisterPage from './components/RegisterPage.jsx'
+import LoginPage from './components/LoginPage.jsx'
 
 const resourceSamples = {
   [paths.desks]: [
@@ -236,7 +237,7 @@ export default function App() {
           ))}
           <Route path={paths.reservations} element={<ComingSoonPage title="Moje rezervacije" description="Tukaj boš spremljal in upravljal svoje rezervacije." />} />
           <Route path={paths.register} element={<RegisterPage />} />
-          <Route path={paths.login} element={<ComingSoonPage title="Prijava" description="Varna prijava uporabnikov bo dodana v nalogi za avtentikacijo." />} />
+          <Route path={paths.login} element={<LoginPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
