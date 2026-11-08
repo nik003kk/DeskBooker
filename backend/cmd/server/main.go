@@ -16,7 +16,6 @@ import (
 	"github.com/nik003kk/DeskBooker/backend/internal/server"
     "github.com/nik003kk/DeskBooker/backend/internal/repository"
     "github.com/nik003kk/DeskBooker/backend/internal/resources"
-    "github.com/nik003kk/DeskBooker/backend/internal/models"
 )
 
 func main() {
@@ -58,7 +57,7 @@ func main() {
             auth.MeHandler(store),
             auth.ProfileHandler(store),
             auth.UpdateProfileHandler(store),
-            auth.RequireRoles(store, models.RoleManager, models.RoleAdmin),
+            auth.RequireResourceManager(store),
             resources.CreateHandler(store),
             resources.AddFeaturesHandler(store),
             resources.AdminListHandler(store),
