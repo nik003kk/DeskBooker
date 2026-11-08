@@ -23,6 +23,11 @@ test('booking confirmation is a private workflow route, not a navigation item', 
   assert.ok(!navigation.some(route => route.path === paths.bookingConfirm))
 })
 
+test('booking success is a private workflow route, not in the main menu', () => {
+  assert.equal(paths.bookingSuccess, '/reservations/success')
+  assert.ok(!navigation.some(route => route.path === paths.bookingSuccess))
+})
+
 test('resource cards link to existing navigation paths', () => {
   const registered = new Set(navigation.map(({ path }) => path))
   assert.equal(sections.length, 4)

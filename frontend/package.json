@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/routes.test.js src/components/ui.test.js src/registration.test.js src/login.test.js src/auth-session.test.js src/auth-api.test.js src/profile.test.js src/profile-edit.test.js src/resource-admin-api.test.js src/admin-resources.test.js src/resource-edit-api.test.js src/resource-activation.test.js src/resource-permissions.test.js src/resource-search-filters.test.js src/resource-card.test.js src/resource-search-api.test.js src/booking-selection.test.js src/booking-api.test.js"
+    "test": "node --test src/routes.test.js src/components/ui.test.js src/registration.test.js src/login.test.js src/auth-session.test.js src/auth-api.test.js src/profile.test.js src/profile-edit.test.js src/resource-admin-api.test.js src/admin-resources.test.js src/resource-edit-api.test.js src/resource-activation.test.js src/resource-permissions.test.js src/resource-search-filters.test.js src/resource-card.test.js src/resource-search-api.test.js src/booking-selection.test.js src/booking-api.test.js src/booking-success.test.js"
   },
   "dependencies": {
     "react": "^19.2.0",

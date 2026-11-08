@@ -178,3 +178,9 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .resource-result-card .ui-button { margin-top:auto; }
 .resource-feature-tags { display:flex; flex-wrap:wrap; gap:7px; min-height:30px; }
 .resource-feature-tag { display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:999px; padding:4px 10px; font-size:.8rem; }
+
+/* DB-056 – private initial PIN confirmation */
+.booking-pin-section { margin:22px 0; padding:20px; text-align:center; border:1px solid var(--line); border-radius:14px; }
+.booking-pin-section h2 { font-size:1rem; }
+.booking-pin { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:clamp(2rem,5vw,3rem); letter-spacing:.3em; font-weight:800; font-variant-numeric:tabular-nums; }
+.booking-success-card > .ui-button { display:inline-flex; }
