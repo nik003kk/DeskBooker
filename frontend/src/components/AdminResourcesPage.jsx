@@ -25,10 +25,10 @@ export default function AdminResourcesPage() {
     {!loading && !error && !items.length && <p role="status">Ni ustvarjenih virov.</p>}
     {!loading && !error && items.length>0 &&
       <div className="admin-table-wrap"><table className="admin-table">
-        <thead><tr><th>Naziv</th><th>Vrsta</th><th>Nadstropje</th><th>Kapaciteta</th><th>Stanje</th></tr></thead>
+        <thead><tr><th>Naziv</th><th>Vrsta</th><th>Nadstropje</th><th>Kapaciteta</th><th>Stanje</th><th>Uredi</th></tr></thead>
         <tbody>{items.map(item=><tr key={item.id}><td>{item.name}</td><td>{item.type}</td>
           <td>{item.floor ?? '—'}</td><td>{item.capacity}</td>
-          <td><StatusBadge tone={item.is_active?'blue':'neutral'}>{item.is_active?'Aktiven':'Neaktiven'}</StatusBadge></td></tr>)}</tbody>
+          <td><StatusBadge tone={item.is_active?'blue':'neutral'}>{item.is_active?'Aktiven':'Neaktiven'}</StatusBadge></td><td><Link to={'/admin/resources/'+item.id+'/edit'}>Uredi</Link></td></tr>)}</tbody>
       </table></div>
     }
   </Card>
