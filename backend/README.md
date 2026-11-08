@@ -440,3 +440,12 @@ prazen seznam pomeni brez filtra. Filtriranje ne spreminja izločanja zasedenih 
 `features: []` ali seznam dejanskih lastnosti iz `resource_features`.
 Neuspešno branje opreme vrne sanitized HTTP 500, ne nepopolnih rezultatov.
 Za zaščiteno pot zadostuje veljaven JWT uporabnika `employee`.
+
+## Ustvarjanje rezervacij (DB-050)
+
+Prijavljeni uporabniki lahko pošljejo `POST /api/reservations` s telesom
+`{"resource_id":"UUID","starts_at":"2026-11-10T09:00:00+01:00","ends_at":"2026-11-10T10:00:00+01:00"}`.
+JWT določa lastnika; `user_id` iz telesa ni dovoljen. Na uspeh vrne
+HTTP **201** s stanjem `CONFIRMED`. Za že zaseden termin velja HTTP 409
+(PostgreSQL exclusion constraint iz migracije 7). Neaktivnega vira
+ni mogoče rezervirati. DB-051 bo dodal transakcijsko zaščito.
