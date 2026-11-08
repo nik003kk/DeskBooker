@@ -4,7 +4,6 @@ import(
  "context"
  "net/http"
  "strings"
- "time"
 
  "github.com/gin-gonic/gin"
  "github.com/nik003kk/DeskBooker/backend/internal/models"
@@ -34,13 +33,8 @@ func SearchHandler(store Searcher)gin.HandlerFunc{
    if len(date)!=10 || len(start)!=5 || len(end)!=5 {
     c.JSON(400,gin.H{"error":gin.H{"code":"invalid_time","message":"Use YYYY-MM-DD and HH:MM"}});return
    }
-   location,err:=time.LoadLocation("Europe/Ljubljana")
-   if err!=nil {c.JSON(500,gin.H{"error":gin.H{"code":"timezone_unavailable","message":"Time zone unavailable"}});return}
-   from,errFrom:=time.ParseInLocation("2006-01-02 15:04",date+" "+start,location)
-   to,errTo:=time.ParseInLocation("2006-01-02 15:04",date+" "+end,location)
-   if errFrom!=nil || errTo!=nil || !to.After(from) || to.Sub(from)>24*time.Hour ||
-      from.In(location).Format("2006-01-02 15:04")!=date+" "+start ||
-      to.In(location).Format("2006-01-02 15:04")!=date+" "+end {
+   from,to,err:=parseAvailabilityWindow(date,start,end)
+   if err!=nil {
     c.JSON(400,gin.H{"error":gin.H{"code":"invalid_time","message":"Invalid reservation time window"}});return
    }
    filter.StartsAt=&from
