@@ -399,3 +399,11 @@ ali `{"is_active":true}`. Pot zahteva JWT in vlogo manager/admin.
 Spremeni samo status vira. Vira in rezervacij **ne izbriše**, tako da
 zgodovina rezervacij ostane dostopna; neaktivni viri ne bodo vidni v
 iskanju prostih virov. Ponovni klic z enako vrednostjo je varen.
+
+## Pravična kontrola upravljanja virov (DB-042)
+
+Izraz `OFFICE_MANAGER` v uporabniški zgodbi ustreza obstoječi shranjeni
+vlogi `manager`, `ADMIN` pa vlogi `admin`. Upravljanje virov je
+omejeno na aktivne uporabnike s tema vlogama. `employee`, neaktivni
+in suspendirani računi dobijo HTTP 403; brez veljavnega JWT velja 401.
+Vloga in stanje se pri vsaki zahtevi znova preverita v PostgreSQL.
