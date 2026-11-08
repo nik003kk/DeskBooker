@@ -407,3 +407,13 @@ vlogi `manager`, `ADMIN` pa vlogi `admin`. Upravljanje virov je
 omejeno na aktivne uporabnike s tema vlogama. `employee`, neaktivni
 in suspendirani računi dobijo HTTP 403; brez veljavnega JWT velja 401.
 Vloga in stanje se pri vsaki zahtevi znova preverita v PostgreSQL.
+
+## Iskanje virov (DB-043)
+
+Prijavljen uporabnik lahko kliče `GET /api/resources` z neobveznimi
+parametri `type=DESK`, `date=2026-11-09`, `start=09:00`,
+`end=17:00` in `features=Monitor,USB-C`. Vsi trije časovni parametri
+morajo biti prisotni skupaj; interpretirani so v časovnem pasu
+`Europe/Ljubljana`. V tej različici več izbranih lastnosti pomeni
+**vsaj eno**; naloga DB-045 bo dodala pogoj za **vse** lastnosti.
+Poizvedba izloča neaktivne in časovno zasedene vire.
