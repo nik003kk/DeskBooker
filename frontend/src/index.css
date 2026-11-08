@@ -146,3 +146,6 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
   .auth-name-grid { grid-template-columns: 1fr; gap: 12px; }
   .auth-error-grid { display: block; }
 }
+
+.auth-logout { background: none; border: none; font: inherit; cursor: pointer; }
+.auth-logout:hover { background: #fff0f2; color: #af2437; }
