@@ -144,3 +144,10 @@ Zaščitena pot `/profile` prebere `GET /api/users/me` z JWT ter
 prikaže ime, priimek, e-pošto, oddelek, vlogo in stanje računa.
 Neprijavljene preusmeri na prijavo, HTTP 401 odstrani sejo in HTTP
 403 pokaže sporočilo o dovoljenjih. `npm test && npm run build`.
+
+## Urejanje profila (DB-032)
+
+Na `/profile` lahko spremeniš ime, priimek in oddelek. Obrazec
+validira podatke pred pošiljanjem, uporablja zaščiten `PATCH
+/api/users/me` in po uspehu osveži prikazane podatke. Prazni oddelek
+se pošlje kot `null`; e-pošte ali vloge ni mogoče urejati.
