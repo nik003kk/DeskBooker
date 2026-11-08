@@ -82,3 +82,13 @@ func (r Reservation) Public() ReservationDTO {
         ConfirmedAt: r.ConfirmedAt, CreatedAt: r.CreatedAt,
     }
 }
+
+
+// UpdateUserProfileInput contains only fields users may edit.
+// DepartmentSet distinguishes omitted department from JSON null (clear).
+type UpdateUserProfileInput struct {
+    FirstName *string
+    LastName *string
+    Department *string
+    DepartmentSet bool
+}
