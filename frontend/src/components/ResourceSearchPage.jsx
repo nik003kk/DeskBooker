@@ -1,5 +1,6 @@
 import { Card, StatusBadge } from './ui.jsx'
 import ResourceSearchFilters from './ResourceSearchFilters.jsx'
+import ResourceResultCard from './ResourceResultCard.jsx'
 
 // The page layout is introduced independently of its API wiring.
 // DB-047 adds filters, DB-048 adds result cards, DB-049 connects the API.
@@ -20,10 +21,13 @@ export default function ResourceSearchPage() {
           <div className="section-heading">
             <h2 id="resource-search-results-heading">Rezultati iskanja</h2>
           </div>
-          <Card className="empty-state" role="status">
-            <h3>Pripravljeno za iskanje</h3>
-            <p>Filtri so pripravljeni. V DB-049 bodo povezani z rezultati iz API-ja.</p>
-          </Card>
+          <p className="demo-notice">Primer prikaza rezultata. V DB-049 bodo podatki prišli iz PostgreSQL.</p>
+          <div className="resource-grid">
+            <ResourceResultCard resource={{
+              id: 'demo-resource', name: 'Primer: Miza A-101', type: 'DESK',
+              floor: 1, capacity: 1, features: ['Monitor', 'USB-C'],
+            }} />
+          </div>
         </section>
       </div>
     </div>
