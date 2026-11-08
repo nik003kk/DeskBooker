@@ -33,6 +33,7 @@ func TestPasswordLimits(t *testing.T) {
     for _, tc := range []struct { name, password string; valid bool }{
         {"empty", "", false},
         {"too short", strings.Repeat("a", 11), false},
+        {"whitespace only", strings.Repeat(" ", 12), false},
         {"minimum", strings.Repeat("a", 12), true},
         {"maximum", strings.Repeat("a", 72), true},
         {"too long", strings.Repeat("a", 73), false},
