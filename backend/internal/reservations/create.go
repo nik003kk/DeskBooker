@@ -60,7 +60,10 @@ func CreateHandler(store Creator)gin.HandlerFunc{
    if errors.Is(err,repository.ErrResourceUnavailable){fail(c,409,"resource_unavailable","Resource is not active");return}
    fail(c,500,"reservation_failed","Could not create reservation");return
   }
-  c.JSON(http.StatusCreated,gin.H{"reservation":saved.Public()})
+  // PIN is returned only on initial creation, never in list DTOs.
+  response:=gin.H{"reservation":saved.Public()}
+  if saved.CheckInCode!=nil {response["check_in_pin"]=*saved.CheckInCode}
+  c.JSON(http.StatusCreated,response)
  }
 }
 func validUUID(id string)bool {
