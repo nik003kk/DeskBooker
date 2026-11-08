@@ -1,7 +1,7 @@
 import { Button, Card, StatusBadge } from './ui.jsx'
 import { resourceCardDetails } from '../resource-card.js'
 
-export default function ResourceResultCard({ resource }) {
+export default function ResourceResultCard({ resource, onBook, canBook = false }) {
   const info = resourceCardDetails(resource)
   return (
     <Card as="article" className="listing-card resource-result-card">
@@ -16,9 +16,10 @@ export default function ResourceResultCard({ resource }) {
           ? info.features.map(feature => <span key={feature} className="resource-feature-tag">{feature}</span>)
           : <span className="field-hint">Oprema ni navedena.</span>}
       </div>
-      <Button variant="secondary" disabled
-        title="Rezerviranje bo omogočeno v naslednjih nalogah">
-        Rezerviraj (kmalu)
+      <Button variant="secondary" disabled={!canBook || typeof onBook !== 'function'}
+        onClick={() => onBook?.(resource)}
+        title={canBook ? 'Preglej in potrdi rezervacijo' : 'Za rezervacijo najprej izberi datum in čas ter klikni Poišči vire'}>
+        Rezerviraj
       </Button>
     </Card>
   )

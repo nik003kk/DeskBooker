@@ -220,3 +220,12 @@ odziv ob napačni kombinaciji filtrov ter ponastavitev.
 Zaščitena pot `/reservations/confirm` prikazuje izbrani vir, nadstropje,
 datum in uro pred potrditvijo, ob manjkajočem izboru pa uporabnika
 usmeri nazaj na `/search`. Dejanska potrditev bo vključena v DB-055.
+
+## Rezerviranje z API-jem (DB-055)
+
+Na `/search` izberi datum, začetni in končni čas, klikni »Poišči vire«,
+nato na rezultatu »Rezerviraj«. Pot `/reservations/confirm` pokaže vir
+in termin pred končno potrditvijo. `POST /api/reservations` z JWT ustvari
+potrjeno rezervacijo in vrne štirimestni check-in PIN. Konflikt termina
+(HTTP 409) uporabniku pove, da mora izbrati drug čas. Čas se pretvori
+iz Europe/Ljubljana v UTC, brez odvisnosti od lokalne nastavitve računalnika.

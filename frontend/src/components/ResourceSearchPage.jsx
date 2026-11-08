@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { paths } from '../routes.js'
 import { Card, StatusBadge, Button } from './ui.jsx'
 import { useAuth } from '../AuthContext.jsx'
 import ResourceSearchFilters from './ResourceSearchFilters.jsx'
@@ -10,6 +12,8 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/a
 
 export default function ResourceSearchPage() {
   const { token, logout } = useAuth()
+  const navigate = useNavigate()
+  const [selectedFilters, setSelectedFilters] = useState({ ...emptySearchFilters })
   const [resources, setResources] = useState([])
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
@@ -23,6 +27,7 @@ export default function ResourceSearchPage() {
     setBusy(true)
     setError('')
     setSearched(isFiltered)
+    setSelectedFilters(isFiltered ? { ...filters } : { ...emptySearchFilters })
     try {
       const result = await searchAvailableResources(filters, {
         token, logout, apiBaseUrl, signal: controller.signal,
@@ -86,7 +91,11 @@ export default function ResourceSearchPage() {
           )}
           {!busy && !error && resources.length > 0 && (
             <div className="resource-grid">
-              {resources.map(resource => <ResourceResultCard key={resource.id} resource={resource} />)}
+              {resources.map(resource => <ResourceResultCard key={resource.id} resource={resource}
+                canBook={Boolean(selectedFilters.date && selectedFilters.start && selectedFilters.end)}
+                onBook={item => navigate(paths.bookingConfirm, {
+                  state: { resource: item, filters: selectedFilters },
+                })} />)}
             </div>
           )}
         </section>
