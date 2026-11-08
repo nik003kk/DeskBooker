@@ -119,3 +119,30 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }
+
+/* Registration page – DB-025 */
+.auth-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, .68fr); gap: clamp(22px, 4vw, 58px); align-items: start; max-width: 1060px; margin-inline: auto; }
+.auth-card { width: 100%; min-width: 0; padding: clamp(24px, 4vw, 44px); }
+.auth-card h1 { margin: 10px 0 12px; }
+.auth-card > p { margin-bottom: 24px; }
+.auth-form { display: flex; flex-direction: column; gap: 15px; }
+.auth-name-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.auth-error-grid { margin-top: -11px; }
+.form-error { display: block; min-height: 0; color: #af2437; font-size: .8rem; line-height: 1.45; }
+.form-field input[aria-invalid="true"] { border-color: #c73046; }
+.auth-feedback { padding: 12px 14px; border-radius: 10px; font-size: .88rem; }
+.auth-feedback--error { color: #8b1d2c; background: #fff0f2; border: 1px solid #f1bdc7; }
+.auth-submit { width: 100%; margin-top: 6px; }
+.auth-bottom { margin: 22px 0 0 !important; font-size: .9rem; }
+.auth-bottom a { color: #2354ca; font-weight: 700; }
+.auth-aside { padding-top: clamp(28px, 5vw, 75px); }
+.auth-aside h2 { margin: 0 0 18px; font-size: clamp(1.6rem, 3vw, 2.3rem); }
+.auth-aside .demo-notice { margin-top: 22px; }
+@media (max-width: 800px) {
+  .auth-layout { grid-template-columns: 1fr; }
+  .auth-aside { padding: 0 4px; }
+}
+@media (max-width: 480px) {
+  .auth-name-grid { grid-template-columns: 1fr; gap: 12px; }
+  .auth-error-grid { display: block; }
+}

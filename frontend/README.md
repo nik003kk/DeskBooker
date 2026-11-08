@@ -55,3 +55,50 @@ V brskalniku ročno preveri:
 5. Tab navigacija in vidna stanja fokusa, povezava »Preskoči na vsebino«, onemogočeni gumbi rezervacij.
 
 Produkcijska gradnja: `npm run build` ustvari `dist/`, ki je ignoriran v Git.
+
+## Registracijski obrazec (DB-025)
+
+Nova pot `/register` uporablja React obrazec za ime, priimek, službeni
+e-naslov, geslo in ponovitev gesla. Preverja zahtevana polja, domeno,
+dolžino gesla (**12–72 bajtov**) in ujemanje gesel ter pošlje
+`POST /api/auth/register` v obstoječi Go backend.
+Ob uspehu pokaže potrditev in povezavo na prijavo, ob že obstoječem
+naslovu pa razumljivo sporočilo. Geslo se ne zapisuje v browser storage.
+
+Za lokalni razvoj iz mape `frontend` ustvari `.env.local` (ta datoteka
+naj ostane izven Git):
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:8080/api
+VITE_REGISTRATION_EMAIL_DOMAIN=gmail.com
+```
+
+`VITE_REGISTRATION_EMAIL_DOMAIN` mora ustrezati nastavitvi
+`REGISTRATION_EMAIL_DOMAIN` v korenski `.env`. Za testiranje lahko
+obe nastavita `gmail.com`; v produkciji uporabi dejansko službeno domeno.
+Frontend validacija je uporabniška pomoč, **backend je avtoritativen**.
+Vsi `VITE_*` podatki so javni v brskalniku: nikoli ne nastavljaj
+`JWT_SECRET` ali gesel na frontend strani.
+
+Zagon (dva terminala): iz korena najprej
+`docker compose up -d postgres`, nato `cd backend && go run ./cmd/server`
+(zahteva korenski `.env` z veljavnim `JWT_SECRET` iz DB-024).
+V drugem terminalu izvedi:
+
+```bash
+cd frontend
+npm ci
+npm test
+npm run build
+npm run dev
+```
+
+Odpri <http://localhost:5173/register>. Preveri:
+- prazna polja, napačna domena in prekratko geslo prikažejo lokalne napake;
+- neusklajena gesla preprečijo oddajo;
+- veljaven še neuporabljen e-naslov ustvari račun in prikaže potrditev;
+- ponovna registracija istega naslova pokaže napako HTTP 409.
+  Za to osveži stran in znova pošlji enake podatke.
+
+**Pozor:** uspešna registracija ustvari resničen zapis v lokalni tabeli
+`public.users`. Za ponavljanje uporabite nov testni naslov.
