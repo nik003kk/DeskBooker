@@ -10,6 +10,8 @@ import ProfilePage from './components/ProfilePage.jsx'
 import CreateResourcePage from './components/CreateResourcePage.jsx'
 import AdminResourcesPage from './components/AdminResourcesPage.jsx'
 import EditResourcePage from './components/EditResourcePage.jsx'
+import ManagerRoute from './components/ManagerRoute.jsx'
+import { canManageResources } from './resource-permissions.js'
 
 const resourceSamples = {
   [paths.desks]: [
@@ -204,7 +206,7 @@ function Navigation() {
   const { isAuthenticated, user, logout } = useAuth()
   return (
     <nav className="site-nav" aria-label="Glavna navigacija">
-      {navigation.filter(({path}) => (path !== paths.profile || isAuthenticated) && (![paths.createResource,paths.adminResources].includes(path) || ['manager','admin'].includes(user?.role))).map(({ path, label, end }) => (
+      {navigation.filter(({path}) => (path !== paths.profile || isAuthenticated) && (![paths.createResource,paths.adminResources].includes(path) || canManageResources(user))).map(({ path, label, end }) => (
         <NavLink
           key={path}
           to={path}
@@ -243,9 +245,9 @@ export default function App() {
               element={<ResourcePage path={path} title={label} description={description} />}
             />
           ))}
-          <Route path={paths.editResource} element={<ProtectedRoute><EditResourcePage /></ProtectedRoute>} />
-          <Route path={paths.adminResources} element={<ProtectedRoute><AdminResourcesPage /></ProtectedRoute>} />
-          <Route path={paths.createResource} element={<ProtectedRoute><CreateResourcePage /></ProtectedRoute>} />
+          <Route path={paths.editResource} element={<ManagerRoute><EditResourcePage /></ManagerRoute>} />
+          <Route path={paths.adminResources} element={<ManagerRoute><AdminResourcesPage /></ManagerRoute>} />
+          <Route path={paths.createResource} element={<ManagerRoute><CreateResourcePage /></ManagerRoute>} />
           <Route path={paths.profile} element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path={paths.reservations} element={<ProtectedRoute><ComingSoonPage title="Moje rezervacije" description="Tukaj boš spremljal in upravljal svoje rezervacije." /></ProtectedRoute>} />
           <Route path={paths.register} element={<RegisterPage />} />
