@@ -458,3 +458,11 @@ rezervacijo s statusom `CONFIRMED` ter `confirmed_at`.
 PostgreSQL constraint `reservations_no_active_overlap` (migracija 7)
 prepreči prekrivanje tudi pri hkratnih poskusih (HTTP 409), po napaki
 transakcija izvede rollback. Neobstoječi vir vrne HTTP 404.
+
+## Validacija termina (DB-052)
+
+Časovna polja sta RFC3339 datuma z območjem (primer `2026-11-10T09:00:00+01:00`).
+Začetek mora biti v prihodnosti, pred koncem, trajanje največ 24 ur,
+oba časa pa natančna na minuto. API vrne HTTP 400 pred DB zahtevkom
+ob pretečenem ali nesmiselnem intervalu. Primerjava uporablja UTC instante,
+ne lokalnih časovnih nizov.
