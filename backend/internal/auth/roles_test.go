@@ -17,7 +17,7 @@ func TestRequireRolesEnforces401And403(t *testing.T) {
     if err != nil { t.Fatal(err) }
     token, _, err := tokens.Issue("user-123")
     if err != nil { t.Fatal(err) }
-    db := &jwtUserDB{user:models.User{ID:"user-123", Role:models.RoleEmployee}}
+    db := &jwtUserDB{user:models.User{ID:"user-123", Role:models.RoleEmployee,Status:models.UserActive}}
     router := gin.New()
     router.GET("/private", RequireJWT(tokens), RequireRoles(db, models.RoleManager, models.RoleAdmin),
         func(c *gin.Context) { c.Status(http.StatusOK) })
