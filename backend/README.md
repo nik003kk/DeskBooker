@@ -239,3 +239,21 @@ docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d desk
 Testni zapisi se povrnejo z `ROLLBACK`. Pred migracijo na bazi z resničnimi
 podatki preveri morebitna že obstoječa prekrivanja in podvojene check-in
 kode, saj migracija ob konfliktu ne more uspeti.
+
+## Go modeli, DTO in repository (DB-020)
+
+`internal/models` definira uporabnike, vire, lastnosti in rezervacije z
+varnimi javnimi DTO-ji. `internal/repository` uporablja PostgreSQL prek
+obstoječega `pgxpool`. Podrobnosti:
+[`docs/go-models-repository.md`](../docs/go-models-repository.md).
+
+```bash
+go test ./...
+go vet ./...
+go build ./...
+go run ./cmd/repository-smoke
+```
+
+Zadnji ukaz poveže repository z lokalno bazo (zahteva migracije do
+verzije **7**) in izvede vse CRUD smoke korake v transakciji, ki se
+na koncu povrne z `ROLLBACK`.
