@@ -29,6 +29,12 @@ func NewRouterWithRegistration(db DatabasePinger, allowedOrigins map[string]stru
 // NewRouterWithAuth exposes configured authentication handlers and keeps
 // the legacy health/registration constructor behavior unchanged.
 func NewRouterWithAuth(db DatabasePinger, allowedOrigins map[string]struct{}, register, login gin.HandlerFunc) *gin.Engine {
+    return NewRouterWithJWT(db, allowedOrigins, register, login, nil, nil)
+}
+
+// NewRouterWithJWT additionally wires a JWT-protected current-user endpoint.
+func NewRouterWithJWT(db DatabasePinger, allowedOrigins map[string]struct{},
+    register, login, requireJWT, me gin.HandlerFunc) *gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -50,6 +56,9 @@ func NewRouterWithAuth(db DatabasePinger, allowedOrigins map[string]struct{}, re
     }
     if login != nil {
         api.POST("/auth/login", login)
+    }
+    if requireJWT != nil && me != nil {
+        api.GET("/auth/me", requireJWT, me)
     }
 
 	api.GET("/health", func(c *gin.Context) {
