@@ -148,4 +148,6 @@ func TestCheckInIntegration(t *testing.T) {
 
 	t.Run("user administration", func(t *testing.T) { testUserAdministration(t, pool) })
 
+	t.Run("resource category lifecycle", func(t *testing.T) { testResourceCategories(t, pool, owner) })
+
 }
