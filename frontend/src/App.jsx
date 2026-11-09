@@ -17,6 +17,9 @@ import BookingSuccessPage from './components/BookingSuccessPage.jsx'
 import CheckInPage from './components/CheckInPage.jsx'
 import AnalyticsPage from './components/AnalyticsPage.jsx'
 import AnalyticsRoute from './components/AnalyticsRoute.jsx'
+import AdminUsersPage from './components/AdminUsersPage.jsx'
+import AdminUsersRoute from './components/AdminUsersRoute.jsx'
+import { canAdministerUsers } from './admin-users-api.js'
 import { canManageResources } from './resource-permissions.js'
 
 const resourceSamples = {
@@ -212,7 +215,7 @@ function Navigation() {
   const { isAuthenticated, user, logout } = useAuth()
   return (
     <nav className="site-nav" aria-label="Glavna navigacija">
-      {navigation.filter(({path}) => (path !== paths.profile || isAuthenticated) && (![paths.createResource,paths.adminResources,paths.analytics].includes(path) || canManageResources(user))).map(({ path, label, end }) => (
+      {navigation.filter(({path}) => (path !== paths.profile || isAuthenticated) && (path !== paths.adminUsers || canAdministerUsers(user)) && (![paths.createResource,paths.adminResources,paths.analytics].includes(path) || canManageResources(user))).map(({ path, label, end }) => (
         <NavLink
           key={path}
           to={path}
@@ -255,6 +258,7 @@ export default function App() {
           <Route path={paths.adminResources} element={<ManagerRoute><AdminResourcesPage /></ManagerRoute>} />
           <Route path={paths.createResource} element={<ManagerRoute><CreateResourcePage /></ManagerRoute>} />
           <Route path={paths.profile} element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path={paths.adminUsers} element={<AdminUsersRoute><AdminUsersPage /></AdminUsersRoute>} />
           <Route path={paths.analytics} element={<AnalyticsRoute><AnalyticsPage /></AnalyticsRoute>} />
           <Route path={paths.search} element={<ProtectedRoute><ResourceSearchPage /></ProtectedRoute>} />
           <Route path={paths.checkIn} element={<ProtectedRoute><CheckInPage /></ProtectedRoute>} />
