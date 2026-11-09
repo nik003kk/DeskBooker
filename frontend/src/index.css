@@ -196,3 +196,7 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .check-in-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 
 .check-in-countdown { padding: 14px 16px; border-radius: 12px; background: #edf3ff; color: #2156c7; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.status-badge--green { background: #e5f7ec; color: #176b3b; }
+.check-in-confirmed { margin: 20px 0; padding: 20px; border: 1px solid #afd9be; border-radius: 14px; background: #f3fbf6; }
+.check-in-confirmed p { margin: 12px 0 0; color: #225437; }

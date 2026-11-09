@@ -88,3 +88,100 @@ test('check-in modal preserves PIN, handles failures, prevents duplicate submiss
     await rm(directory, { recursive: true, force: true })
   }
 })
+
+test('confirmed presence comes from server status and timestamp', async () => {
+  const React = await import('react')
+  const { renderToStaticMarkup } = await import('react-dom/server')
+  const directory = await mkdtemp(new URL('../node_modules/.check-in-status-', import.meta.url))
+  try {
+    const bundle = await build({ entryPoints: ['src/components/CheckInStatus.jsx'], bundle: true, packages: 'external', platform: 'node', format: 'esm', jsx: 'automatic', write: false })
+    const modulePath = directory + '/status.mjs'
+    await writeFile(modulePath, bundle.outputFiles[0].text)
+    const { default: CheckInStatus } = await import(pathToFileURL(modulePath).href)
+    const reservation = { status: 'CHECKED_IN', checked_in_at: '2030-01-01T09:00:00Z' }
+    const result = renderToStaticMarkup(React.createElement(CheckInStatus, { reservation }))
+    assert.match(result, /Prisotnost potrjena/)
+    assert.match(result, /status-badge--green/)
+    assert.match(result, /CHECKED_IN/)
+    assert.match(result, /dateTime="2030-01-01T09:00:00Z"/)
+    assert.match(result, /10:00/)
+    for (const value of [{ status: 'CONFIRMED' }, { status: 'CHECKED_IN' }, { status: 'CANCELLED', checked_in_at: reservation.checked_in_at }]) {
+      const html = renderToStaticMarkup(React.createElement(CheckInStatus, { reservation: value }))
+      assert.doesNotMatch(html, /Prisotnost potrjena/)
+      assert.doesNotMatch(html, /status-badge--green/)
+    }
+  } finally {
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
+test('check-in page confirms presence and reloads persisted confirmation without PIN', async () => {
+  const dom = new JSDOM('<!doctype html><div id="root"></div>', { url: 'http://localhost/' })
+  globalThis.window = dom.window
+  globalThis.document = dom.window.document
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true
+  dom.window.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+  dom.window.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
+  const React = await import('react')
+  const { act } = React
+  const { createRoot } = await import('react-dom/client')
+  const { MemoryRouter, Route, Routes } = await import('react-router-dom')
+  const directory = await mkdtemp(new URL('../node_modules/.check-in-page-', import.meta.url))
+  const previousFetch = globalThis.fetch
+  let root
+  try {
+    const bundle = await build({
+      entryPoints: ['src/components/CheckInPage.jsx'], bundle: true, packages: 'external', platform: 'node', format: 'esm', jsx: 'automatic', write: false,
+      define: { 'import.meta.env.VITE_API_BASE_URL': 'undefined' },
+      plugins: [{ name: 'authenticated-user', setup(builder) {
+        builder.onResolve({ filter: /AuthContext\.jsx$/ }, () => ({ path: 'test-auth', namespace: 'test-auth' }))
+        builder.onLoad({ filter: /.*/, namespace: 'test-auth' }, () => ({ contents: 'const logout = () => {}; export function useAuth() { return { token: "test-token", logout }; }' }))
+      } }],
+    })
+    const modulePath = directory + '/page.mjs'
+    await writeFile(modulePath, bundle.outputFiles[0].text)
+    const { default: CheckInPage } = await import(pathToFileURL(modulePath).href)
+    const id = '11111111-1111-4111-8111-111111111111'
+    let reservation = { id, status: 'CONFIRMED', starts_at: new Date(Date.now() + 300000).toISOString(), ends_at: new Date(Date.now() + 3600000).toISOString() }
+    let posts = 0
+    globalThis.fetch = async (url, request) => {
+      if (request.method === 'POST') {
+        posts++
+        assert.ok(url.endsWith('/check-in'))
+        assert.deepEqual(JSON.parse(request.body), { pin: '0042' })
+        reservation = { ...reservation, status: 'CHECKED_IN', checked_in_at: new Date().toISOString() }
+        return Response.json({ reservation })
+      }
+      return Response.json({ reservation, resource: { name: 'Miza za check-in' } })
+    }
+    const view = () => React.createElement(MemoryRouter, { initialEntries: ['/reservations/' + id + '/check-in'] },
+      React.createElement(Routes, null, React.createElement(Route, { path: '/reservations/:id/check-in', element: React.createElement(CheckInPage) })))
+    root = createRoot(document.getElementById('root'))
+    await act(async () => root.render(view()))
+    assert.match(document.body.textContent, /Miza za check-in/)
+    const button = [...document.querySelectorAll('button')].find(element => element.textContent === 'Potrdi prihod s PIN-om')
+    assert.equal(button.disabled, false)
+    await act(async () => button.click())
+    await act(async () => {
+      const event = new dom.window.Event('paste', { bubbles: true, cancelable: true })
+      Object.defineProperty(event, 'clipboardData', { value: { getData: () => '0042' } })
+      document.querySelector('input').dispatchEvent(event)
+    })
+    await act(async () => document.querySelector('form').dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true })))
+    assert.equal(posts, 1)
+    assert.equal(document.querySelector('dialog'), null)
+    assert.match(document.querySelector('.status-badge--green').textContent, /Prisotnost potrjena/)
+    await act(async () => root.unmount())
+    root = createRoot(document.getElementById('root'))
+    await act(async () => root.render(view()))
+    assert.match(document.querySelector('.status-badge--green').textContent, /Prisotnost potrjena/)
+    assert.ok(document.querySelector('time'))
+    assert.doesNotMatch(document.body.textContent, /0042|Potrdi prihod s PIN-om/)
+    assert.equal(posts, 1)
+  } finally {
+    if (root) await act(async () => root.unmount())
+    globalThis.fetch = previousFetch
+    dom.window.close()
+    await rm(directory, { recursive: true, force: true })
+  }
+})

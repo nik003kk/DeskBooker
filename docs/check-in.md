@@ -57,3 +57,37 @@ Odštevalnik se posodablja vsako sekundo in po vrnitvi na zavihek.
 Pred odprtjem pokaže preostanek do odprtja, med oknom čas do zaprtja,
 po zaprtju pa onemogoči potrditev tudi v že odprtem modalnem oknu.
 Ura brskalnika je informativna; API vedno ponovno preveri čas v bazi.
+
+Po uspešnem odgovoru API-ja se modal zapre, kartica pokaže zeleno
+značko **Prisotnost potrjena**, status `CHECKED_IN` in dejanski
+`checked_in_at` v časovnem pasu Europe/Ljubljana. Gumb za ponovni
+check-in izgine. Po osvežitvi se stanje znova pridobi iz baze.
+
+## Skupni funkcionalni preizkus
+
+1. Posodobi development, izvedi migracijo 10 in ponovno zaženi backend.
+2. V frontend izvedi `npm ci` in `npm run dev` ter se prijavi.
+3. Rezerviraj prost vir za današnji termin z začetkom približno 5 minut
+   v prihodnosti, shrani PIN in klikni **Odpri check-in**.
+4. Preveri odštevalnik in odpri modal. Napačen štirimestni PIN mora
+   prikazati **Napačna PIN koda** in pustiti rezervacijo nespremenjeno.
+5. Vnesi pravilen PIN. Preveri zeleno značko, status in čas potrditve.
+6. Osveži stran; potrditev mora ostati, PIN pa se ne sme prikazati.
+7. Poskusi rezervirati isti vir v prekrivajočem se terminu; ostaja zaseden.
+8. Za rezervacijo z začetkom več kot 10 minut v prihodnosti preveri
+   odštevanje do odprtja in onemogočen gumb. Neposreden API zahtevek
+   mora prav tako vrniti 409 `check_in_window`.
+
+API primer (v istem terminalu, kjer je svež TOKEN):
+
+```bash
+curl -i -X POST "http://localhost:8080/api/reservations/$RESERVATION_ID/check-in" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"pin":"TVOJ_PIN"}'
+```
+
+Za stare rezervacije je mogoč direkten obisk
+`http://localhost:5173/reservations/<id>/check-in`; za uspešen check-in
+mora biti njihov termin v dovoljenem oknu. Seznam Moje rezervacije
+ostaja predmet DB-076–DB-079.
