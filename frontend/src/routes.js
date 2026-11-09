@@ -21,9 +21,9 @@ export const paths = Object.freeze({
 })
 
 export const sections = Object.freeze([
-  { path: paths.desks, label: 'Delovna mesta', description: 'Poišči prosto mizo.', icon: '▤' },
-  { path: paths.rooms, label: 'Sejne sobe', description: 'Načrtuj naslednji sestanek.', icon: '▦' },
-  { path: paths.parking, label: 'Parkirišča', description: 'Preveri parkirna mesta.', icon: '▧' },
+  { path: paths.desks, label: 'Delovna mesta', description: 'Poišči prosto mizo.', resourceType: 'DESK', icon: '▤' },
+  { path: paths.rooms, label: 'Sejne sobe', description: 'Načrtuj naslednji sestanek.', resourceType: 'MEETING_ROOM', icon: '▦' },
+  { path: paths.parking, label: 'Parkirišča', description: 'Preveri parkirna mesta.', resourceType: 'PARKING_SPOT', icon: '▧' },
   { path: paths.equipment, label: 'Oprema', description: 'Rezerviraj skupno opremo.', icon: '◈' },
 ])
 

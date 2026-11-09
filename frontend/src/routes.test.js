@@ -48,3 +48,9 @@ test('analytics navigation points to its manager workflow', () => {
   assert.equal(paths.analytics, '/analytics')
   assert.ok(navigation.some(route => route.path === paths.analytics))
 })
+
+test('live resource categories are bound to their API types', () => {
+  for (const [path, type] of [[paths.desks, 'DESK'], [paths.rooms, 'MEETING_ROOM'], [paths.parking, 'PARKING_SPOT']]) {
+    assert.equal(sections.find(section => section.path === path)?.resourceType, type)
+  }
+})

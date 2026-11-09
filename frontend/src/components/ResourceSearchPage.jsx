@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { paths } from '../routes.js'
 import { Card, StatusBadge, Button } from './ui.jsx'
@@ -10,10 +10,12 @@ import { searchAvailableResources } from '../resource-search-api.js'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
 
-export default function ResourceSearchPage() {
+export default function ResourceSearchPage({ fixedType = '', title = 'Iskanje virov', description = 'Preveri proste delovne mize, sejne sobe in parkirišča glede na termin in opremo.' }) {
   const { token, logout } = useAuth()
   const navigate = useNavigate()
-  const [selectedFilters, setSelectedFilters] = useState({ ...emptySearchFilters })
+  const baseFilters = useMemo(() => ({ ...emptySearchFilters, type: fixedType }), [fixedType])
+  const [selectedFilters, setSelectedFilters] = useState(baseFilters)
+  const [dirty, setDirty] = useState(false)
   const [resources, setResources] = useState([])
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
@@ -24,12 +26,14 @@ export default function ResourceSearchPage() {
     pending.current?.abort()
     const controller = new AbortController()
     pending.current = controller
+    const scoped = { ...filters, type: fixedType || filters.type || '' }
+    setDirty(false)
     setBusy(true)
     setError('')
     setSearched(isFiltered)
-    setSelectedFilters(isFiltered ? { ...filters } : { ...emptySearchFilters })
+    setSelectedFilters(scoped)
     try {
-      const result = await searchAvailableResources(filters, {
+      const result = await searchAvailableResources(scoped, {
         token, logout, apiBaseUrl, signal: controller.signal,
       })
       if (pending.current === controller) setResources(result)
@@ -49,37 +53,41 @@ export default function ResourceSearchPage() {
   }
 
   useEffect(() => {
-    load(emptySearchFilters)
+    load(baseFilters)
     return () => { pending.current?.abort(); pending.current = null }
-  }, [token, logout])
+  }, [token, logout, baseFilters])
 
   return (
     <div className="page-stack resource-search-page">
       <header className="page-intro">
         <div>
-          <span className="eyebrow">Poišči pravo delovno mesto</span>
-          <h1>Iskanje virov</h1>
-          <p>Preveri proste delovne mize, sejne sobe in parkirišča glede na termin in opremo.</p>
+          <span className="eyebrow">Rezervacijski viri</span>
+          <h1>{title}</h1>
+          <p>{description}</p>
         </div>
         <StatusBadge tone="blue">Dejanski podatki</StatusBadge>
       </header>
       <div className="resource-search-layout">
-        <ResourceSearchFilters busy={busy}
+        <ResourceSearchFilters key={fixedType || 'all'} fixedType={fixedType} busy={busy} onChange={() => setDirty(true)}
           onSearch={filters => load(filters, true)}
-          onReset={() => load(emptySearchFilters)} />
+          onReset={() => load(baseFilters)} />
         <section className="resource-search-results" aria-labelledby="resource-search-results-heading">
           <div className="section-heading">
-            <h2 id="resource-search-results-heading">Rezultati iskanja</h2>
+            <h2 id="resource-search-results-heading">{selectedFilters.date ? 'Razpoložljivi viri' : 'Aktivni viri'}</h2>
             {!busy && !error && <span className="result-count" aria-live="polite">
               {resources.length} {resources.length === 1 ? 'rezultat' : 'rezultatov'}
             </span>}
           </div>
+          <p className="field-hint">{selectedFilters.date
+            ? `Uporabljeni termin: ${selectedFilters.date}, ${selectedFilters.start}–${selectedFilters.end} · Europe/Ljubljana`
+            : 'Prikazani so aktivni viri. Za preverjanje razpoložljivosti in rezervacijo izberi datum in čas ter klikni Poišči vire.'}</p>
+          {dirty && <p role="status" className="resource-filter-notice">Filtri so spremenjeni. Za nove rezultate klikni Poišči vire.</p>}
           {busy && <Card className="empty-state" role="status"><p>Iščem razpoložljive vire ...</p></Card>}
           {!busy && error && (
             <Card className="empty-state" role="alert">
               <h3>Iskanje ni uspelo</h3>
               <p>{error}</p>
-              <Button variant="secondary" onClick={() => load(emptySearchFilters)}>Poskusi znova</Button>
+              <Button variant="secondary" onClick={() => load(baseFilters)}>Poskusi znova</Button>
             </Card>
           )}
           {!busy && !error && resources.length === 0 && (
@@ -92,7 +100,7 @@ export default function ResourceSearchPage() {
           {!busy && !error && resources.length > 0 && (
             <div className="resource-grid">
               {resources.map(resource => <ResourceResultCard key={resource.id} resource={resource}
-                canBook={Boolean(selectedFilters.date && selectedFilters.start && selectedFilters.end)}
+                canBook={!dirty && Boolean(selectedFilters.date && selectedFilters.start && selectedFilters.end)}
                 onBook={item => navigate(paths.bookingConfirm, {
                   state: { resource: item, filters: selectedFilters },
                 })} />)}
@@ -103,3 +111,4 @@ export default function ResourceSearchPage() {
     </div>
   )
 }
+
