@@ -43,3 +43,12 @@ Integracijski test uporablja **prazno namensko testno bazo** prek
 napačen PIN, sočasni check-in, nespremenjen čas pri ponovitvi ter
 izločanje zasedenega vira iz iskanja in novih rezervacij. GitHub Actions
 za to ustvari ločen PostgreSQL 17 servis.
+
+## Uporabniški vmesnik
+
+Na uspešnem zaslonu rezervacije klikni **Odpri check-in**. Stran
+`/reservations/<id>/check-in` pridobi podatke iz API-ja in deluje tudi
+po ponovni prijavi ali osvežitvi. Povezavo lahko shraniš med zaznamke.
+PIN ostane samo v vnosu modalnega okna in se ne shrani v brskalnik ali URL.
+Modal podpira štiri polja, lepljenje kode, premikanje s tipkovnico,
+ponovni vnos po napaki in preprečevanje podvojenih zahtevkov.

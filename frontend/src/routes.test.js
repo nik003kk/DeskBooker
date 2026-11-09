@@ -37,3 +37,9 @@ test('resource cards link to existing navigation paths', () => {
     assert.ok(section.description.trim().length > 0)
   }
 })
+
+
+test('check-in is a private reservation route outside the main menu', () => {
+  assert.equal(paths.checkIn, '/reservations/:id/check-in')
+  assert.ok(!navigation.some(route => route.path === paths.checkIn))
+})
