@@ -44,3 +44,12 @@ Prehod uspešne rezervacije iz CHECKED_IN v COMPLETED zato ne spremeni
 razmerja. Vsi seštevki uporabljajo isto obdobje po začetku rezervacije.
 Brez znanih izidov je delež null, ne 0 %. API vrne tudi števec `expired`,
 `attended` in imenovalec `eligible`, da je izračun preverljiv.
+
+
+## Stran Analitika (DB-071)
+
+Aktivni vodja ali skrbnik odpre `/analytics` prek povezave Analitika.
+Kartice pokažejo zasedenost, vse rezervacije, aktivne rezervacije in no-show
+z definicijami ter časom zadnjega podatkovnega posnetka. Stran vključuje
+nalaganje, prazno stanje, sporočilo o napaki in ponovni poskus. Podatki
+se ob zavrnitvi dostopa odstranijo, prekinjene zahteve ne prepišejo novejših.
