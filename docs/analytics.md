@@ -74,3 +74,18 @@ ničelna osnova in neznani deleži so posebej označeni. Trenutno aktivnih
 rezervacij ne primerjamo z zgodovinskim stanjem, ki ga baza ne hrani.
 Gumb Osveži podatke ponovno pridobi obe obdobji. Prekinjene in pozne
 zahteve prejšnjega izbora ne smejo prepisati novega prikaza.
+
+
+## CSV (DB-074)
+
+`GET /api/analytics/export.csv?from=YYYY-MM-DD&to=YYYY-MM-DD` uporablja
+isto validacijo obdobja, pravice in izračun kot JSON. Gumb **Izvozi CSV**
+izvozi trenutno uporabljeno obdobje. Izvoz med spremembo izbora se prekine.
+Poročilo vsebuje metapodatke obdobja in časa izračuna, KPI, vseh šest
+statusov, dnevne in tedenske podatke. Ne vsebuje osebnih podatkov ali PIN.
+
+Stolpci so `section,metric,date,weekday,value,unit`. Enote so count,
+minutes, percent ali text. Neznani deleži so prazni, decimalno ločilo je
+pika, kodiranje UTF-8 z BOM za preglednice. JSON in CSV se izračunata ob
+posamezni zahtevi; če se rezervacije med njima spremenijo, se razlikujeta
+čas izračuna in podatki. Napake ostanejo JSON in niso ponujene kot CSV.

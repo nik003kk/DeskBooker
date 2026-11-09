@@ -80,7 +80,7 @@ func main() {
             reservations.CheckInHandler(repository.NewBookingStore(pool)),
             reservations.DetailHandler(store),
         )
-    server.RegisterAnalytics(router,auth.RequireJWT(tokens),auth.RequireResourceManager(store),analytics.SummaryHandler(store))
+    server.RegisterAnalytics(router,auth.RequireJWT(tokens),auth.RequireResourceManager(store),analytics.SummaryHandler(store),analytics.CSVHandler(store))
     srv := &http.Server{
         Addr: ":"+port,
         Handler: router,

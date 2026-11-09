@@ -91,3 +91,24 @@ test('late analytics responses never overwrite a newer period', async () => {
     assert.equal(document.querySelector('.analytics-page').textContent, newer)
   })
 })
+
+test('CSV button downloads the applied period and revokes its object URL', async () => {
+  let exports = 0; let clicked = ''; let revoked = ''
+  await pageHarness(async url => {
+    if (url.includes('/export.csv?')) { exports++; return new Response('section,metric,date,weekday,value,unit\r\nsummary,total_reservations,,,6,count\r\n', { headers: { 'Content-Type': 'text/csv' } }) }
+    return responseFor(url)
+  }, async ({ act, dom }) => {
+    const previousCreate = URL.createObjectURL; const previousRevoke = URL.revokeObjectURL
+    const previousClick = dom.window.HTMLAnchorElement.prototype.click
+    URL.createObjectURL = () => 'blob:analytics-test'
+    URL.revokeObjectURL = url => { revoked = url }
+    dom.window.HTMLAnchorElement.prototype.click = function () { clicked = this.download }
+    try {
+      await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Izvozi CSV').click())
+      assert.equal(exports, 1)
+      assert.match(clicked, /^deskbooker-analytics-\d{4}-\d{2}-\d{2}-\d{4}-\d{2}-\d{2}\.csv$/)
+      assert.equal(revoked, 'blob:analytics-test')
+      assert.equal(document.querySelector('a[download]'), null)
+    } finally { URL.createObjectURL = previousCreate; URL.revokeObjectURL = previousRevoke; dom.window.HTMLAnchorElement.prototype.click = previousClick }
+  })
+})
