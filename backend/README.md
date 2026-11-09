@@ -1,478 +1,51 @@
 # DeskBooker – Go backend
 
-REST API za DeskBooker (Go + Gin + PostgreSQL/pgx).
+Go 1.25+, Gin, PostgreSQL 17 in pgx. Osrednja navodila za konfiguracijo,
+prvi račun, Docker ter odpravljanje težav so v [glavnem README-ju](../README.md).
 
-## Predpogoji
+## Lokalni zagon
 
-- Go 1.25 ali novejši
-- Docker Desktop z zagnanim PostgreSQL (glej `docs/database-setup.md`)
-
-## Lokalni zagon (DB-008)
-
-V **korenu** repozitorija enkrat ustvari lokalno konfiguracijo:
+Najprej pripravi korenski `.env` in zaženi `docker compose up -d postgres` iz
+korena, kot opisuje glavni README. Naslednje ukaze izvajaj iz mape `backend`:
 
 ```bash
-cp .env.example .env
-```
-
-V `.env` nastavi lastno geslo `POSTGRES_PASSWORD`; `POSTGRES_PORT=5433` ustreza našemu lokalnemu okolju, kjer so vrata 5432 že zasedena.
-
-Zaženi PostgreSQL:
-
-```bash
-docker compose up -d postgres
-docker compose ps
-```
-
-Zaženi backend (brez `source .env`):
-
-```bash
-cd backend
+go mod download
+go run ./cmd/migrate up
+go run ./cmd/migrate status
 go run ./cmd/server
 ```
 
-Strežnik sam poišče **korensko** datoteko `.env`, ne glede na to, ali ga poženeš iz korena ali iz mape `backend`. Če datoteke ni, pričakuje okoljske spremenljivke, nastavljene v procesu (npr. v produkciji). Že nastavljene okoljske spremenljivke imajo prednost pred datoteko `.env`.
+API posluša na http://localhost:8080. `GET /api/health/db` preveri tudi bazo.
+Konfiguracija se bere iz korenskega `.env`; procesne spremenljivke imajo prednost.
+JWT ključ mora imeti najmanj 32 bajtov. Registracija zahteva dovoljeno e-poštno domeno.
 
-Podprte nastavitve:
-- `PORT` (HTTP, privzeto 8080)
-- `POSTGRES_HOST` (privzeto localhost), `POSTGRES_PORT` (iz `.env`), `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD`, `POSTGRES_SSLMODE`
-- `DATABASE_URL`, ki ima prednost pred `POSTGRES_*`
-
-Datoteka uporablja preprost zapis `KEY=VALUE` (lahko tudi enojni/dvojni narekovaji, brez shell interpolacije). Če jo urejaš, ne vstavljaj ukazov ali skrivnosti v Git. `backend/.env.example` je informativni primer; za lokalni zagon je edini vir datoteka `.env` v korenu. Gesel in ključev nikoli ne nastavljaj v `frontend/VITE_*`, ker so te vrednosti javne v brskalniku.
+Lokalni API sam ne izvaja migracij. Trenutna verzija je 13 (`dirty: false`).
+Pri celotnem Docker zagonu jih izvede storitev `migrate` pred zagonom API-ja.
+Ukaz `down` povrne eno migracijo in lahko izbriše podatke.
 
 ## Preverjanje
 
-```bash
-curl -i http://localhost:8080/api/health
-curl -i http://localhost:8080/api/health/db
-```
-
-Ob uspešni povezavi drugi endpoint vrne HTTP 200:
-
-```json
-{"status":"ok","database":"connected"}
-```
-
-Če povezava ob zagonu ni na voljo, backend vrne napako in se ne zažene.
-
-## Testi
-
-```bash
-cd backend
-go test ./...
-go vet ./...
-```
-
-Testi vključujejo preverjanje branja lokalne konfiguracije, njenega prednostnega vrstnega reda in obravnave napak. Domenske migracije in endpointi bodo dodani v nadaljevanju.
-
-## CORS in REST API (DB-009)
-
-Gin vrača JSON na `GET /api/health` in `GET /api/health/db`. Neznana pot vrne JSON napako HTTP 404, nedovoljena metoda pa JSON HTTP 405.
-
-Brskalniški klici so dovoljeni samo iz konfiguriranih izvorov. Privzeto je dovoljen `http://localhost:5173` (React Vite); dodatne izvore nastavi v **korenskem** `.env`:
-
-```dotenv
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-```
-
-Ne uporabljaj `*`, ne dodajaj zaključne poševnice (`/`), poti ali poverilnic. Če `CORS_ALLOWED_ORIGINS` ni nastavljen, se uporablja samo `http://localhost:5173`. Nastavitev vpliva na brskalniški CORS; **ne nadomešča avtentikacije** in neposrednih API zahtevkov brez `Origin` ne blokira.
-
-Preizkus dovoljenega izvora:
-
-```bash
-curl -i -H 'Origin: http://localhost:5173' http://localhost:8080/api/health
-```
-
-Odgovor mora vsebovati `Access-Control-Allow-Origin: http://localhost:5173`.
-
-Preizkus preflight zahtevka:
-
-```bash
-curl -i -X OPTIONS \
-  -H 'Origin: http://localhost:5173' \
-  -H 'Access-Control-Request-Method: GET' \
-  http://localhost:8080/api/health
-```
-
-Pričakuj HTTP 204. Za neznani izvor (`https://evil.example`) se dovoljenje CORS ne doda; preflight vrne HTTP 403.
-
-V mapi `backend` izvedi `go test ./...` in `go vet ./...`.
-
-## Podatkovne migracije (DB-010)
-
-Za nadzor različic PostgreSQL sheme uporabljamo `golang-migrate`. Podrobna navodila:
-[`docs/migrations.md`](../docs/migrations.md).
-
-Iz mape `backend`:
-
-```bash
-go mod tidy
-go run ./cmd/migrate status
-go run ./cmd/migrate up
-go run ./cmd/migrate status
-go run ./cmd/migrate down
-```
-
-`up` izvede vse čakajoče verzije, `down` pa povrne **eno** verzijo.
-Migracije se ne izvajajo samodejno ob zagonu API strežnika.
-Prva verzija je neinvazivna baseline migracija; aplikacijskih tabel še ne ustvari.
-
-## Razvojni testni podatki (DB-011)
-
-Navodila: [`docs/seed-data.md`](../docs/seed-data.md).
-
-Po zagonu PostgreSQL in migracij:
-
-```bash
-go run ./cmd/migrate up
-APP_ENV=development go run ./cmd/seed
-```
-
-Ponovljen seed posodobi iste stabilne ID-je brez podvajanja podatkov.
-Ukaz deluje **samo** ob `APP_ENV=development`, uporablja obstoječo korensko
-`.env` in zapisuje podatke v ločeno shemo `demo_seed`.
-To še niso končne poslovne tabele ali dejanski uporabniški računi.
-
-## Uporabniki – podatkovna tabela (DB-015)
-
-Migracija `000003_create_users` doda dejansko tabelo `public.users` z
-UUID, e-pošto, geselskim hashom, imenom, priimkom, vlogo, oddelkom in
-časom ustvaritve. Podrobnosti: [`docs/users-schema.md`](../docs/users-schema.md).
-
-```bash
-go run ./cmd/migrate up
-go run ./cmd/migrate status
-```
-
-Za integracijski preizkus omejitev (iz **korena repozitorija**):
-
-```bash
-docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/users-smoke.sql
-```
-
-Preizkus izvede `ROLLBACK` in ne pusti testnih vrstic. V produkciji
-ne zaganjaj migracije `down` brez varnostne kopije, saj izbriše uporabnike.
-
-## Rezervacijski viri – tabela resources (DB-016)
-
-Migracija `000004_create_resources` ustvari poslovno tabelo `public.resources`
-za mize, sejne sobe in parkirna mesta. Vse podrobnosti, omejitve in primeri
-so v [`docs/resources-schema.md`](../docs/resources-schema.md).
-
-```bash
-go run ./cmd/migrate up
-go run ./cmd/migrate status
-```
-
-Pričakovana verzija je `4`. Lokalni integracijski test iz **korenske mape**:
-
-```bash
-docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/resources-smoke.sql
-```
-
-Test izvede `ROLLBACK` in ne pusti podatkov. Povrnitev migracije
-`down` izbriše vse dejanske vire; ne uporabljaj je na produkcijski bazi.
-
-## Lastnosti rezervacijskih virov (DB-017)
-
-Migracija `000005_create_resource_features` doda tabelo `public.resource_features`
-za pripenjanje več lastnosti/opreme istemu viru. Podrobnosti:
-[`docs/resource-features-schema.md`](../docs/resource-features-schema.md).
-
-```bash
-go run ./cmd/migrate up
-go run ./cmd/migrate status
-```
-
-Pričakovana verzija je `5`. Integracijski test za lokalni PostgreSQL
-(iz korena repozitorija):
-
-```bash
-docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/resource-features-smoke.sql
-```
-
-Test ne pušča podatkov (`ROLLBACK`). Povrnitev migracije `down`
-izbriše podatke o lastnostih in je zato destruktivna.
-
-## Rezervacije – tabela reservations (DB-018)
-
-Migracija `000006_create_reservations` doda `public.reservations`
-s povezavama na uporabnike in vire, začetkom/koncem, statusom,
-check-in kodo in časom potrditve. Več informacij:
-[`docs/reservations-schema.md`](../docs/reservations-schema.md).
-
-```bash
-go run ./cmd/migrate up
-go run ./cmd/migrate status
-```
-
-Pričakovana verzija je `6`. Lokalni integracijski preizkus iz korena:
-
-```bash
-docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/reservations-smoke.sql
-```
-
-Smoke test preveri uspešen vnos, potrditvena polja in zavrnitve neveljavnih
-podatkov; na koncu izvede `ROLLBACK` in ne pušča testnih zapisov.
-Migracija `down` izbriše vse rezervacije, zato je ne izvajaj na
-produkcijski bazi brez ustreznega načrta in varnostne kopije.
-
-## Pravila za rezervacije in indeksi (DB-019)
-
-Migracija `000007_reservation_constraints` uvede preprečevanje časovno
-prekrivajočih se aktivnih rezervacij istega vira na ravni PostgreSQL,
-enolične check-in kode in indekse za uporabnikov pregled in urnik virov.
-Podrobnosti: [`docs/reservation-constraints.md`](../docs/reservation-constraints.md).
-
-```bash
-go run ./cmd/migrate up
-go run ./cmd/migrate status
-```
-
-Pričakovana verzija je `7`. SQL integracijski preizkus izvedi iz
-**korena repozitorija**:
-
-```bash
-docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 -U deskbooker -d deskbooker < backend/scripts/reservation-constraints-smoke.sql
-```
-
-Testni zapisi se povrnejo z `ROLLBACK`. Pred migracijo na bazi z resničnimi
-podatki preveri morebitna že obstoječa prekrivanja in podvojene check-in
-kode, saj migracija ob konfliktu ne more uspeti.
-
-## Go modeli, DTO in repository (DB-020)
-
-`internal/models` definira uporabnike, vire, lastnosti in rezervacije z
-varnimi javnimi DTO-ji. `internal/repository` uporablja PostgreSQL prek
-obstoječega `pgxpool`. Podrobnosti:
-[`docs/go-models-repository.md`](../docs/go-models-repository.md).
+Iz `backend`:
 
 ```bash
 go test ./...
 go vet ./...
 go build ./...
-go run ./cmd/repository-smoke
 ```
 
-Zadnji ukaz poveže repository z lokalno bazo (zahteva migracije do
-verzije **7**) in izvede vse CRUD smoke korake v transakciji, ki se
-na koncu povrne z `ROLLBACK`.
+Brez `CHECK_IN_TEST_DATABASE_URL` se integracijski test s PostgreSQL preskoči.
+CI ga izvede s `-race` na prazni, ločeni bazi. Ne usmerjaj ga na razvojno ali
+produkcijsko bazo: sam izvaja migracije in podatkovne spremembe.
 
-## Registracija službenih uporabnikov (DB-021)
+Izbirni `APP_ENV=development go run ./cmd/seed` polni samo shemo `demo_seed`;
+ne ustvari prijavnih računov ali dejanskih virov MVP-ja.
 
-`POST /api/auth/register` sprejme ime, priimek, službeni e-naslov
-in geslo. V korenski `.env` nastavi `REGISTRATION_EMAIL_DOMAIN` na
-**dejansko** podjetniško domeno; brez nastavitve registracija vrne 503.
-Gesla se zgoščujejo z bcrypt, podvojen e-naslov vrne HTTP 409.
-API ne vrne gesla ali hasha in ne izda prijavne seje.
+## Dokumentacija API-ja in podatkov
 
-Primeri, zahteve za geslo in lokalni preizkus:
-[`docs/registration-api.md`](../docs/registration-api.md).
-
-## Varnost gesel (DB-022)
-
-Centralizirani bcrypt funkciji `auth.HashPassword` in
-`auth.VerifyPassword` zagotavljata soljeno zgoščevanje ter preverjanje
-pravilnega/napačnega gesla. Registracija uporablja isti modul.
-Repository metoda `GetUserByEmail` omogoča bodočo prijavo; dejanski
-`POST /api/auth/login` je predmet DB-023.
-
-```bash
-go test ./...
-go vet ./...
-go build ./...
-go run ./cmd/password-smoke
-```
-
-Zadnji ukaz potrebuje zagnan lokalni PostgreSQL z migracijo **7**
-in preveri shranjeni hash ter gesla. Testni podatki se povrnejo
-z `ROLLBACK`. Podrobnosti:
-[`docs/password-security.md`](../docs/password-security.md).
-
-## Prijava – preverjanje e-pošte in gesla (DB-023)
-
-`POST /api/auth/login` preveri lokalno registrirani račun prek
-`GetUserByEmail` in `VerifyPassword`. Na uspeh vrne HTTP 200
-in varni `UserDTO`, na neznan e-naslov ali napačno geslo HTTP 401.
-API ne vrača hasha in ne ustvarja seje ali žetona.
-
-```bash
-go test ./...
-go vet ./...
-go build ./...
-go run ./cmd/server
-```
-
-Za ročni preizkus na lokalni bazi (migracije **7**) glej
-[`docs/login-api.md`](../docs/login-api.md), kjer so primeri
-za HTTP 200 in 401. Za javno uporabo bosta potrebna HTTPS in
-omejevanje pogostosti poskusov prijave.
-
-## JWT avtentikacija (DB-024)
-
-Obvezen je naključno ustvarjen `JWT_SECRET` (vsaj 32 bajtov) v **korenski** `.env`:
-
-```bash
-openssl rand -hex 32
-```
-
-Izpis shrani v `.env` kot `JWT_SECRET=<izpis>`. Ne v Git in ne v `VITE_*`.
-Strežnik se brez veljavnega ključa ne zažene.
-
-`POST /api/auth/login` ob pravilnih poverilnicah vrne kratkoživeči
-podpisani `access_token` (HS256, **15 minut**) in `token_type: Bearer`.
-Zaščitena pot `GET /api/auth/me` zahteva
-`Authorization: Bearer <access_token>` in vrne varne podatke prijavljenega
-uporabnika. Manjkajoč, spremenjen ali potekel žeton vrne HTTP **401**.
-
-Primeri in varnostne omejitve: [`docs/jwt-authentication.md`](../docs/jwt-authentication.md).
-
-## Zaščita API poti in vloge (DB-028)
-
-Gin middleware `RequireJWT` preverja žetone (HTTP 401), `RequireRoles`
-pa dovoljenje glede na aktualno vlogo uporabnika iz PostgreSQL (HTTP
-403 za premalo pravic, 401 za izbrisanega uporabnika). Še vedno je
-potrebna uporaba teh middleware komponent na vsaki zaščiteni poti.
-Enotski testi: `go test ./internal/auth`.
-
-## Uporabniški profil (DB-029)
-
-Migracija `000008_users_status` doda preverjeno stanje računa:
-`active`, `inactive` ali `suspended` (privzeto `active`).
-Po `go run ./cmd/migrate up` in `go run ./cmd/migrate status`
-pričakuj verzijo **8**, `dirty: false`.
-
-Zaščiten `GET /api/users/me` zahteva Bearer JWT in vrne
-`user` z imenom, priimkom, e-pošto, oddelkom, vlogo in stanjem.
-Gesla/geselskega hasha ne vrne. Brez žetona odgovori s HTTP 401.
-
-## Urejanje profila (DB-030)
-
-Zaščiten `PATCH /api/users/me` spremeni le `first_name`,
-`last_name` in `department`. JSON `null` za oddelek odstrani
-vrednost. `email`, `role` in `status` ni dovoljeno spreminjati;
-neznana polja vrnejo HTTP 400. Po uspešnem popravku vrne HTTP 200
-in varni `UserDTO`. Migracija ostane na verziji 8.
-
-## Dodajanje rezervacijskih virov (DB-033)
-
-`POST /api/resources` ustvari vir tipa `DESK`, `MEETING_ROOM` ali
-`PARKING_SPOT`. Zahteva Bearer JWT in vlogo `manager` ali `admin`.
-HTTP 401 pomeni neprijavljenega, 403 pa uporabnika brez dovoljenja.
-Telo: `{"name":"Miza 1","type":"DESK","capacity":1,"floor":1}`.
-`is_active` je privzeto `true`. Uspeh vrne HTTP 201 in nov vir.
-Testiraj z `go test ./... && go vet ./... && go build ./...`.
-
-## Oprema in lastnosti virov (DB-034)
-
-`POST /api/resources/:id/features` je zaščiten z JWT in vlogo
-`manager`/`admin`. Zahtevek `{"features":["Monitor","USB-C"]}`
-doda največ 20 lastnosti. Podvojitve v zahtevku se zavrnejo,
-obstoječe lastnosti v bazi se ne podvajajo (case-insensitive unique
-index). En sam SQL INSERT ohranja atomarnost celotnega seznama.
-Odgovor HTTP 201 vrne shranjene lastnosti. Neznan vir vrne HTTP 404.
-
-## Validacija virov (DB-035)
-
-Ime vira mora biti neprazno, brez odvečnih presledkov in kontrolnih
-znakov (največ 150 Unicode znakov). Tip je `DESK`, `MEETING_ROOM`
-ali `PARKING_SPOT`, kapaciteta mora biti pozitivna in nadstropje
-nenegativno ali `null`. Validacija teče pred HTTP vstavljanjem in
-znotraj repository-ja. Podvojeno ime brez razlikovanja velikosti črk
-vrne HTTP 409. Migracija `000009_resource_validation` zagotavlja
-`floor >= 0` tudi neposredno v PostgreSQL. Po `go run ./cmd/migrate up`
-pričakuj verzijo **9, dirty: false**.
-
-## Urejanje vira (DB-038)
-
-Upravitelj lahko s `PATCH /api/resources/:id` popravi `name`, `type`,
-`floor` (tudi `null`), `capacity`, `is_active` in `features` (seznam,
-tudi prazen za odstranitev opreme). JWT in vloga manager/admin sta obvezna.
-Spremembe osnovnega vira in opreme so **atomske v eni PostgreSQL
-transakciji**, z zaklepanjem zapisa vira. Uspeh: HTTP 200; neznan vir:
-404; neveljavni podatki: 400; podvojen naziv: 409.
-
-## Aktivacija in deaktivacija vira (DB-039)
-
-`PATCH /api/resources/:id/activation` sprejme `{"is_active":false}`
-ali `{"is_active":true}`. Pot zahteva JWT in vlogo manager/admin.
-Spremeni samo status vira. Vira in rezervacij **ne izbriše**, tako da
-zgodovina rezervacij ostane dostopna; neaktivni viri ne bodo vidni v
-iskanju prostih virov. Ponovni klic z enako vrednostjo je varen.
-
-## Pravična kontrola upravljanja virov (DB-042)
-
-Izraz `OFFICE_MANAGER` v uporabniški zgodbi ustreza obstoječi shranjeni
-vlogi `manager`, `ADMIN` pa vlogi `admin`. Upravljanje virov je
-omejeno na aktivne uporabnike s tema vlogama. `employee`, neaktivni
-in suspendirani računi dobijo HTTP 403; brez veljavnega JWT velja 401.
-Vloga in stanje se pri vsaki zahtevi znova preverita v PostgreSQL.
-
-## Iskanje virov (DB-043)
-
-Prijavljen uporabnik lahko kliče `GET /api/resources` z neobveznimi
-parametri `type=DESK`, `date=2026-11-09`, `start=09:00`,
-`end=17:00` in `features=Monitor,USB-C`. Vsi trije časovni parametri
-morajo biti prisotni skupaj; interpretirani so v časovnem pasu
-`Europe/Ljubljana`. Od DB-045 dalje več izbranih lastnosti pomeni **vse** navedene lastnosti (logični IN).
-Poizvedba izloča neaktivne in časovno zasedene vire.
-
-## Razpoložljivost virov (DB-044)
-
-`GET /api/resources/:id/availability?date=2026-11-09&start=09:00&end=17:00`
-vrne `available: true/false`. Neaktivni viri in rezervacije s stanjem
-`PENDING` ali `CONFIRMED` v prekrivajočem se terminu niso razpoložljivi.
-`CANCELLED` in `COMPLETED` ne blokirajo termina. Intervali so
-polodprti: konec ene rezervacije se lahko stika z začetkom druge.
-Neveljavni datumi, ure, časovni presledki in neobstoječi časi ob
-spomladanskem prehodu na poletni čas vrnejo HTTP 400.
-API zahteva JWT. Vir brez ID-ja v bazi vrne HTTP 404.
-
-## Filtriranje po vseh lastnostih (DB-045)
-
-`GET /api/resources?features=Monitor,USB-C` vrne samo aktivne vire, ki imajo **obe** lastnosti.
-Poizvedba uporablja `NOT EXISTS` nad `unnest($4::text[])`, parametre veže varno;
-prazen seznam pomeni brez filtra. Filtriranje ne spreminja izločanja zasedenih terminov.
-
-## Rezultati iskanja z opremo (DB-049)
-
-`GET /api/resources` vrne polje `resources`. Vsak rezultat vključuje
-`features: []` ali seznam dejanskih lastnosti iz `resource_features`.
-Neuspešno branje opreme vrne sanitized HTTP 500, ne nepopolnih rezultatov.
-Za zaščiteno pot zadostuje veljaven JWT uporabnika `employee`.
-
-## Ustvarjanje rezervacij (DB-050)
-
-Prijavljeni uporabniki lahko pošljejo `POST /api/reservations` s telesom
-`{"resource_id":"UUID","starts_at":"2026-11-10T09:00:00+01:00","ends_at":"2026-11-10T10:00:00+01:00"}`.
-JWT določa lastnika; `user_id` iz telesa ni dovoljen. Na uspeh vrne
-HTTP **201** s stanjem `CONFIRMED`. Za že zaseden termin velja HTTP 409
-(PostgreSQL exclusion constraint iz migracije 7). Neaktivnega vira
-ni mogoče rezervirati. DB-051 bo dodal transakcijsko zaščito.
-
-## Varna sočasna rezervacija (DB-051)
-
-Strežnik uporablja `repository.NewBookingStore(pool)`. Transakcija
-zaklene vir z `SELECT ... FOR UPDATE`, zavrne neaktivne vire in vstavi
-rezervacijo s statusom `CONFIRMED` ter `confirmed_at`.
-PostgreSQL constraint `reservations_no_active_overlap` (migracija 7)
-prepreči prekrivanje tudi pri hkratnih poskusih (HTTP 409), po napaki
-transakcija izvede rollback. Neobstoječi vir vrne HTTP 404.
-
-## Validacija termina (DB-052)
-
-Časovna polja sta RFC3339 datuma z območjem (primer `2026-11-10T09:00:00+01:00`).
-Začetek mora biti v prihodnosti, pred koncem, trajanje največ 24 ur,
-oba časa pa natančna na minuto. API vrne HTTP 400 pred DB zahtevkom
-ob pretečenem ali nesmiselnem intervalu. Primerjava uporablja UTC instante,
-ne lokalnih časovnih nizov.
-
-## Varnostna check-in koda (DB-053)
-
-Ob uspešnem `POST /api/reservations` je `check_in_pin` natanko
-štirimestna koda (vključno z morebitnimi vodilnimi ničlami).
-Generira se z `crypto/rand`, shrani v `check_in_code` in ob konfliktu
-unikatnega indeksa varno znova poskusi v novi transakciji.
-Koda se pojavi samo v odgovoru ob ustvarjanju; splošni `ReservationDTO`
-je ne vsebuje. API uporablja `Cache-Control: no-store`.
-Za produkcijo bo potreben tudi nadzor števila poskusov vnosa PIN.
+- [Migracije](../docs/migrations.md) in [razvojni podatki](../docs/seed-data.md)
+- [Registracija](../docs/registration-api.md), [prijava](../docs/login-api.md) in [JWT](../docs/jwt-authentication.md)
+- [Modeli in repository](../docs/go-models-repository.md)
+- [Rezervacijske omejitve](../docs/reservation-constraints.md)
+- [Check-in](../docs/check-in.md) in [no-show sproščanje](../docs/no-show-release.md)
+- [Analitika](../docs/analytics.md) in [administracija uporabnikov](../docs/user-administration.md)
+- [Docker okolje](../docs/docker.md)
