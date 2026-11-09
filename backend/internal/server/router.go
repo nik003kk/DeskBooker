@@ -106,7 +106,7 @@ func NewRouterWithAvailability(db DatabasePinger,allowedOrigins map[string]struc
 // NewRouterWithReservations enables JWT-protected booking creation.
 func NewRouterWithReservations(db DatabasePinger,allowedOrigins map[string]struct{},
  register,login,requireJWT,me,profile,updateProfile,requireManager,createResource,addFeatures,
- adminList,editResource,activation,adminDetail,searchResources,availability,createReservation gin.HandlerFunc)*gin.Engine {
+ adminList,editResource,activation,adminDetail,searchResources,availability,createReservation gin.HandlerFunc, checkInHandlers ...gin.HandlerFunc)*gin.Engine {
     router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery(), CORS(allowedOrigins))
 
@@ -146,6 +146,10 @@ func NewRouterWithReservations(db DatabasePinger,allowedOrigins map[string]struc
     if requireJWT!=nil && availability!=nil {api.GET("/resources/:id/availability",requireJWT,availability)}
     if requireJWT!=nil && searchResources!=nil {api.GET("/resources",requireJWT,searchResources)}
     if requireJWT!=nil && createReservation!=nil {api.POST("/reservations",requireJWT,createReservation)}
+    if requireJWT != nil && len(checkInHandlers) == 2 {
+        api.POST("/reservations/:id/check-in", requireJWT, checkInHandlers[0])
+        api.GET("/reservations/:id", requireJWT, checkInHandlers[1])
+    }
     if requireJWT!=nil && requireManager!=nil && adminDetail!=nil {api.GET("/admin/resources/:id",requireJWT,requireManager,adminDetail)}
     if requireJWT!=nil && requireManager!=nil && adminList!=nil {api.GET("/admin/resources",requireJWT,requireManager,adminList)}
     if requireJWT != nil && requireManager != nil && addFeatures != nil {
@@ -173,3 +177,4 @@ func NewRouterWithReservations(db DatabasePinger,allowedOrigins map[string]struc
 
 	return router
 }
+

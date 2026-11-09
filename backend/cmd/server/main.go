@@ -68,6 +68,8 @@ func main() {
             resources.SearchHandler(store),
             resources.AvailabilityHandler(store),
             reservations.CreateHandler(repository.NewBookingStore(pool)),
+            reservations.CheckInHandler(repository.NewBookingStore(pool)),
+            reservations.DetailHandler(store),
         ),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
@@ -89,3 +91,4 @@ func main() {
 		log.Printf("Napaka pri ustavljanju strežnika: %v", err)
 	}
 }
+

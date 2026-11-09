@@ -27,7 +27,7 @@ var ErrNotFound = pgx.ErrNoRows
 
 const userColumns = "id, email, password_hash, first_name, last_name, role, department, created_at, status"
 const resourceColumns = "id, name, type, floor, capacity, is_active, created_at"
-const reservationColumns = "id, user_id, resource_id, starts_at, ends_at, status, check_in_code, confirmed_at, created_at"
+const reservationColumns = "id, user_id, resource_id, starts_at, ends_at, status, check_in_code, confirmed_at, created_at, checked_in_at"
 
 func scanUser(row pgx.Row) (models.User, error) {
     var u models.User
@@ -54,10 +54,12 @@ func scanReservation(row pgx.Row) (models.Reservation, error) {
     var r models.Reservation
     var code sql.NullString
     var confirmed sql.NullTime
+    var checkedIn sql.NullTime
     err := row.Scan(&r.ID, &r.UserID, &r.ResourceID, &r.StartsAt,
-        &r.EndsAt, &r.Status, &code, &confirmed, &r.CreatedAt)
+        &r.EndsAt, &r.Status, &code, &confirmed, &r.CreatedAt, &checkedIn)
     if code.Valid { r.CheckInCode = &code.String }
     if confirmed.Valid { r.ConfirmedAt = &confirmed.Time }
+    if checkedIn.Valid { r.CheckedInAt = &checkedIn.Time }
     return r, err
 }
 
@@ -271,3 +273,4 @@ func (s *Store) CreateConfirmedReservation(ctx context.Context, in models.Create
  if err!=nil{return models.Reservation{},fmt.Errorf("create confirmed reservation: %w",err)}
  return saved,nil
 }
+

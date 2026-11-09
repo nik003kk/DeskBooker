@@ -9,6 +9,36 @@ permissions:
   contents: read
 
 jobs:
+  check-in-integration:
+    name: Check-in (PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: deskbooker
+          POSTGRES_PASSWORD: integration-only
+          POSTGRES_DB: check_in_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U deskbooker -d check_in_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Check migration and transactional check-in against PostgreSQL
+        working-directory: backend
+        env:
+          CHECK_IN_TEST_DATABASE_URL: postgres://deskbooker:integration-only@localhost:5432/check_in_test?sslmode=disable
+        run: go test -race ./internal/repository -run TestCheckInIntegration -count=1 -v
+
   frontend:
     name: Frontend (React)
     runs-on: ubuntu-latest
@@ -55,3 +85,4 @@ jobs:
         run: go vet ./...
       - name: Build backend
         run: go build ./...
+

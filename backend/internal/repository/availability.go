@@ -14,10 +14,11 @@ func (s *Store) IsResourceAvailable(ctx context.Context,id string,start,end time
  err:=s.db.QueryRow(ctx,
   "SELECT r.is_active AND NOT EXISTS ("+
    "SELECT 1 FROM public.reservations b "+
-   "WHERE b.resource_id=r.id AND b.status IN ('PENDING','CONFIRMED') "+
+   "WHERE b.resource_id=r.id AND b.status IN ('PENDING','CONFIRMED','CHECKED_IN') "+
    "AND b.starts_at < $3 AND b.ends_at > $2) "+
    "FROM public.resources r WHERE r.id=$1",
   id,start,end).Scan(&available)
  if err!=nil{return false,fmt.Errorf("check resource availability: %w",err)}
  return available,nil
 }
+
