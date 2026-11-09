@@ -21,8 +21,15 @@ WITH candidates AS (
     FROM candidates c
     WHERE r.id=c.id AND r.status='CONFIRMED' AND r.checked_in_at IS NULL
     RETURNING r.id
+), audited AS (
+    INSERT INTO public.reservation_audit_log
+        (reservation_id,event_type,previous_status,new_status,occurred_at,message)
+    SELECT id,'NO_SHOW_EXPIRED','CONFIRMED','EXPIRED',statement_timestamp(),
+        'Rezervacija potekla zaradi odsotnosti check-in-a'
+    FROM expired
+    RETURNING reservation_id
 )
-SELECT count(*) FROM expired`
+SELECT count(*) FROM audited`
 
 func (s *Store) ExpireNoShows(ctx context.Context) (int64, error) {
 	var count int64
