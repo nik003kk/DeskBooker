@@ -49,15 +49,9 @@ func CheckInHandler(store CheckInStore) gin.HandlerFunc {
 			fail(c, 400, "invalid_json", "Only one JSON object allowed")
 			return
 		}
-		if len(request.PIN) != 4 {
+		if !models.ValidCheckInPIN(request.PIN) {
 			fail(c, 400, "invalid_pin", "Expected a four-digit PIN")
 			return
-		}
-		for _, digit := range request.PIN {
-			if digit < '0' || digit > '9' {
-				fail(c, 400, "invalid_pin", "Expected a four-digit PIN")
-				return
-			}
 		}
 		saved, err := store.CheckInReservation(c.Request.Context(), c.Param("id"), userID, request.PIN)
 		switch {

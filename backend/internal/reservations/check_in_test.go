@@ -101,3 +101,13 @@ func TestReservationDetailHidesOtherOwnersAndPIN(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckInRejectsMalformedAndInjectedPINRequests(t *testing.T) {
+	for _, body := range []string{`{}`, `{"pin":42}`, `{"pin":null}`, `{"pin":"123"}`, `{"pin":"12345"}`, `{"pin":"12a4"}`, `{"pin":"１２３４"}`, `{"pin":"0042","user_id":"other"}`, `{"pin":"0042"} {}`} {
+		store := &fakeCheckIn{}
+		r := checkInRequest(store, body, true)
+		if r.Code != 400 || store.calls != 0 {
+			t.Fatalf("invalid request reached store: %s: %d", body, r.Code)
+		}
+	}
+}

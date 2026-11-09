@@ -28,7 +28,7 @@ func (s *BookingStore) CheckInReservation(ctx context.Context, id, userID, pin s
 	if err != nil {
 		return models.Reservation{}, fmt.Errorf("find owned reservation: %w", err)
 	}
-	if saved.CheckInCode == nil || *saved.CheckInCode != pin {
+	if !matchesCheckInPIN(saved.CheckInCode, pin) {
 		return models.Reservation{}, ErrCheckInPIN
 	}
 	// A retried successful request returns the original timestamp unchanged.
