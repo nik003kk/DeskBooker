@@ -1,0 +1,80 @@
+x-api-environment: &api-environment
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: deskbooker
+  POSTGRES_USER: deskbooker
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in root .env}
+  POSTGRES_SSLMODE: disable
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: deskbooker
+      POSTGRES_USER: deskbooker
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in root .env}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - deskbooker_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deskbooker -d deskbooker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    image: deskbooker-backend:local
+    build: ./backend
+    command: ["/app/migrate", "up"]
+    restart: "no"
+    environment: *api-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    image: deskbooker-backend:local
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      <<: *api-environment
+      PORT: "8080"
+      GIN_MODE: release
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in root .env}
+      REGISTRATION_EMAIL_DOMAIN: ${REGISTRATION_EMAIL_DOMAIN:?Set REGISTRATION_EMAIL_DOMAIN in root .env}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/health/db"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REGISTRATION_EMAIL_DOMAIN: ${REGISTRATION_EMAIL_DOMAIN:?Set REGISTRATION_EMAIL_DOMAIN in root .env}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5173:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  deskbooker_pgdata:

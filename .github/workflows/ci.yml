@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# The jobs only need repository source code; no write permissions or secrets.
+permissions:
+  contents: read
+
+jobs:
+  check-in-integration:
+    name: Check-in (PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: deskbooker
+          POSTGRES_PASSWORD: integration-only
+          POSTGRES_DB: check_in_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U deskbooker -d check_in_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Check reservation lifecycle, concurrency and rollback against PostgreSQL
+        working-directory: backend
+        env:
+          CHECK_IN_TEST_DATABASE_URL: postgres://deskbooker:integration-only@localhost:5432/check_in_test?sslmode=disable
+        run: go test -race ./internal/repository -run TestCheckInIntegration -count=1 -v
+
+  frontend:
+    name: Frontend (React)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies from lockfile
+        run: npm ci
+      - name: Run frontend tests
+        run: npm test
+      - name: Build frontend
+        run: npm run build
+
+  backend:
+    name: Backend (Go)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: Download Go dependencies
+        run: go mod download
+      - name: Run backend tests
+        run: go test ./...
+      - name: Check Go code
+        run: go vet ./...
+      - name: Build backend
+        run: go build ./...
+
+
+  docker:
+    name: Docker Compose
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      POSTGRES_PASSWORD: compose-ci-only-password
+      POSTGRES_PORT: "5433"
+      JWT_SECRET: compose-ci-only-jwt-secret-at-least-32-characters
+      REGISTRATION_EMAIL_DOMAIN: example.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject missing mandatory configuration
+        run: |
+          if POSTGRES_PASSWORD= docker compose config -q 2>/dev/null; then exit 1; fi
+          if JWT_SECRET= docker compose config -q 2>/dev/null; then exit 1; fi
+          docker compose config -q
+      - name: Build and start complete stack
+        run: docker compose up -d --build --wait --wait-timeout 120
+      - name: Check routes, API proxy and authentication
+        run: python3 scripts/docker-smoke.py
+      - name: Repeat migrations and verify persistence after recreation
+        run: |
+          docker compose run --rm migrate
+          docker compose down
+          docker compose up -d --wait --wait-timeout 120
+          python3 scripts/docker-smoke.py --existing
+      - name: Container diagnostics
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs --tail=100
+      - name: Clean up test volumes
+        if: always()
+        run: docker compose down -v
