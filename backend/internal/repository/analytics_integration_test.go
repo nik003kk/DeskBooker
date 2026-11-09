@@ -58,4 +58,38 @@ func testAnalytics(t *testing.T, pool *pgxpool.Pool, owner string) {
 	if err != nil || empty.TotalReservations != 0 || empty.ActiveReservations != 0 {
 		t.Fatalf("empty range %#v %v", empty, err)
 	}
+	if len(report.Daily) != 3 || len(report.Weekdays) != 5 || report.OccupancyRate == nil || *report.OccupancyRate != 11.46 {
+		t.Fatalf("occupancy report %#v", report)
+	}
+	monday := report.Daily[0]
+	if monday.Date != "2030-01-07" || monday.BookedMinutes != 330 || monday.CapacityMinutes != 960 || monday.OccupancyRate == nil || *monday.OccupancyRate != 34.38 {
+		t.Fatalf("Monday clipping/occupancy: %#v", monday)
+	}
+	if report.Daily[1].BookedMinutes != 0 || report.Weekdays[3].OccupancyRate != nil {
+		t.Fatal("empty weekday must be zero, absent weekday must be nil")
+	}
+	// Completed history can overlap another booking; occupancy is a union of
+	// resource time ranges, never a double count of overlapping history.
+	if _, err = tx.Exec(ctx, "INSERT INTO public.reservations(user_id,resource_id,starts_at,ends_at,status) VALUES($1,$2,$3,$4,'COMPLETED')", owner, first, from.Add(11*time.Hour), from.Add(13*time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	overlap, err := New(tx).ReservationAnalytics(ctx, period)
+	if err != nil || overlap.Daily[0].BookedMinutes != 330 {
+		t.Fatalf("overlapping history double-counted: %#v %v", overlap, err)
+	}
+	if _, err = tx.Exec(ctx, "UPDATE public.resources SET is_active=false WHERE id=$1", second); err != nil {
+		t.Fatal(err)
+	}
+	reduced, err := New(tx).ReservationAnalytics(ctx, period)
+	if err != nil || reduced.Daily[0].CapacityMinutes != 480 || *reduced.Daily[0].OccupancyRate != 68.75 {
+		t.Fatalf("inactive capacity: %#v %v", reduced, err)
+	}
+	if _, err = tx.Exec(ctx, "UPDATE public.resources SET is_active=false WHERE id=$1", first); err != nil {
+		t.Fatal(err)
+	}
+	none, err := New(tx).ReservationAnalytics(ctx, period)
+	if err != nil || none.OccupancyRate != nil {
+		t.Fatalf("zero capacity should be unknown: %#v %v", none, err)
+	}
+
 }
