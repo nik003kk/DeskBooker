@@ -184,3 +184,13 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .booking-pin-section h2 { font-size:1rem; }
 .booking-pin { font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:clamp(2rem,5vw,3rem); letter-spacing:.3em; font-weight:800; font-variant-numeric:tabular-nums; }
 .booking-success-card > .ui-button { display:inline-flex; }
+
+
+.check-in-dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow-y: auto; border: 0; border-radius: 22px; padding: clamp(24px, 5vw, 36px); color: #17233b; box-shadow: 0 24px 80px #14233b40; }
+.check-in-dialog::backdrop { background: #15243b80; }
+.check-in-dialog h2 { margin: 10px 0 12px; }
+.check-in-dialog p { color: #5a667a; line-height: 1.6; }
+.check-in-pin-fields { display: flex; gap: 12px; border: 0; padding: 0; margin: 24px 0; }
+.check-in-pin-fields input { width: min(64px, 18vw); height: 64px; border: 1px solid #b7c5db; border-radius: 12px; text-align: center; font-size: 1.8rem; font-variant-numeric: tabular-nums; }
+.check-in-pin-fields input:focus { outline: 3px solid #aac7ff; outline-offset: 2px; border-color: #2156c7; }
+.check-in-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }

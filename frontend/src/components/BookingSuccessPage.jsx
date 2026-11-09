@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Card, StatusBadge } from './ui.jsx'
 import { paths } from '../routes.js'
+import { checkInPath } from '../check-in-api.js'
 import { confirmedBookingDetails } from '../booking-success.js'
 import { resourceTypeNames } from '../resource-card.js'
 
@@ -34,8 +35,11 @@ export default function BookingSuccessPage() {
         <p className="booking-pin" aria-label="Štirimestna PIN koda">{details.pin}</p>
         <p className="field-hint">PIN shrani na varno in ga ne deli z drugimi. Prikaže se samo pri uspešni potrditvi.</p>
       </section>
-      <Link className="ui-button ui-button--primary" to={paths.search}>Poišči drug vir</Link>
+      <p><Link className="ui-button ui-button--primary" to={checkInPath(details.id)}>Odpri check-in</Link></p>
+      <p className="field-hint">Povezavo do check-in-a lahko shraniš. PIN vnesi ob prihodu.</p>
+      <Link className="ui-button ui-button--secondary" to={paths.search}>Poišči drug vir</Link>
       <p className="field-hint">Referenca rezervacije: {details.id}</p>
     </Card>
   )
 }
+

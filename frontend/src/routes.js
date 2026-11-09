@@ -12,6 +12,7 @@ export const paths = Object.freeze({
   search: '/search',
   bookingConfirm: '/reservations/confirm',
   bookingSuccess: '/reservations/success',
+  checkIn: '/reservations/:id/check-in',
   adminResources: '/admin/resources',
   createResource: '/admin/resources/new',
   editResource: '/admin/resources/:id/edit',
@@ -35,3 +36,4 @@ export const navigation = Object.freeze([
   { path: paths.createResource, label: 'Dodaj vir', end: false },
   { path: paths.adminResources, label: 'Upravljanje virov', end: false },
 ])
+
