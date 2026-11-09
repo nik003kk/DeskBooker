@@ -24,8 +24,10 @@ export async function searchAvailableResources(filters, {
   const body = await response.json()
   if (!Array.isArray(body?.resources) ||
     body.resources.some(item => !item || typeof item.id !== 'string' ||
-      typeof item.name !== 'string' || typeof item.type !== 'string')) {
+      typeof item.name !== 'string' || typeof item.type !== 'string' ||
+      (filters?.type && item.type !== filters.type) || item.is_active === false)) {
     throw new Error('Strežnik je vrnil neveljavne podatke o virih.')
   }
   return body.resources
 }
+

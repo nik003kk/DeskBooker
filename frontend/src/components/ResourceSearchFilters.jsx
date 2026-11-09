@@ -9,10 +9,12 @@ const types = [
   { value: 'PARKING_SPOT', label: 'Parkirna mesta' },
 ]
 
-export default function ResourceSearchFilters({ onSearch, onReset, busy = false }) {
-  const [values, setValues] = useState({ ...emptySearchFilters })
+export default function ResourceSearchFilters({ onSearch, onReset, busy = false, fixedType = '', onChange }) {
+  const [values, setValues] = useState({ ...emptySearchFilters, type: fixedType })
   const [errors, setErrors] = useState({})
   function update(field, value) {
+    if (field === 'type' && fixedType) return
+    onChange?.()
     setValues(current => ({ ...current, [field]: value }))
     setErrors({})
   }
@@ -21,10 +23,10 @@ export default function ResourceSearchFilters({ onSearch, onReset, busy = false 
     const problems = validateSearchFilters(values)
     setErrors(problems)
     if (Object.keys(problems).length) return
-    onSearch({ ...values })
+    onSearch({ ...values, type: fixedType || values.type })
   }
   function reset() {
-    setValues({ ...emptySearchFilters })
+    setValues({ ...emptySearchFilters, type: fixedType })
     setErrors({})
     onReset()
   }
@@ -32,7 +34,7 @@ export default function ResourceSearchFilters({ onSearch, onReset, busy = false 
     <Card className="resource-search-panel" aria-labelledby="resource-search-filter-heading">
       <h2 id="resource-search-filter-heading">Filtri</h2>
       <form className="auth-form" role="search" onSubmit={submit} noValidate>
-        <SelectField label="Vrsta vira" options={types} value={values.type}
+        <SelectField label="Vrsta vira" options={types} value={values.type} disabled={Boolean(fixedType)}
           onChange={e => update('type', e.target.value)} />
         <Field label="Datum" type="date" value={values.date} onChange={e => update('date', e.target.value)} />
         <Field label="Začetni čas" type="time" step={60} value={values.start}
@@ -51,3 +53,4 @@ export default function ResourceSearchFilters({ onSearch, onReset, busy = false 
     </Card>
   )
 }
+

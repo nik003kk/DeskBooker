@@ -23,21 +23,6 @@ import { canAdministerUsers } from './admin-users-api.js'
 import { canManageResources } from './resource-permissions.js'
 
 const resourceSamples = {
-  [paths.desks]: [
-    { id: 'D-101', title: 'Miza D-101', detail: '1. nadstropje · Cona A', badge: 'Monitor' },
-    { id: 'D-102', title: 'Miza D-102', detail: '1. nadstropje · Cona A', badge: 'Standardna' },
-    { id: 'D-201', title: 'Miza D-201', detail: '2. nadstropje · Cona B', badge: 'Monitor' },
-  ],
-  [paths.rooms]: [
-    { id: 'S-1', title: 'Triglav', detail: '1. nadstropje · 8 oseb', badge: 'Sejna soba' },
-    { id: 'S-2', title: 'Pohorje', detail: '2. nadstropje · 4 osebe', badge: 'Sejna soba' },
-    { id: 'S-3', title: 'Bled', detail: '2. nadstropje · 12 oseb', badge: 'Sejna soba' },
-  ],
-  [paths.parking]: [
-    { id: 'P-01', title: 'Parkirišče P-01', detail: 'Pokrito parkirišče', badge: 'Pokrito' },
-    { id: 'P-02', title: 'Parkirišče P-02', detail: 'Pokrito · Električno polnjenje', badge: 'EV' },
-    { id: 'P-03', title: 'Parkirišče P-03', detail: 'Zunanje parkirišče', badge: 'Zunanje' },
-  ],
   [paths.equipment]: [
     { id: 'O-1', title: 'Monitor 27″', detail: 'Zunanja oprema delovnega mesta', badge: 'Monitor' },
     { id: 'O-2', title: 'USB-C priklopna postaja', detail: 'Priklop dodatnih naprav', badge: 'Dodatek' },
@@ -70,7 +55,7 @@ function HomePage() {
             <span className="eyebrow">Razišči možnosti</span>
             <h2 id="resources-title">Kaj želiš rezervirati?</h2>
           </div>
-          <StatusBadge>Predogled aplikacije</StatusBadge>
+          <StatusBadge>Izberi vrsto vira</StatusBadge>
         </div>
         <div className="resource-grid">
           {sections.map((section) => (
@@ -247,11 +232,13 @@ export default function App() {
       <main className="main-content" id="main-content">
         <Routes>
           <Route path={paths.home} element={<HomePage />} />
-          {sections.map(({ path, label, description }) => (
+          {sections.map(({ path, label, description, resourceType }) => (
             <Route
               key={path}
               path={path}
-              element={<ResourcePage path={path} title={label} description={description} />}
+              element={resourceType
+                ? <ProtectedRoute><ResourceSearchPage key={resourceType} fixedType={resourceType} title={label} description={description} /></ProtectedRoute>
+                : <ResourcePage path={path} title={label} description={description} />}
             />
           ))}
           <Route path={paths.editResource} element={<ManagerRoute><EditResourcePage /></ManagerRoute>} />
