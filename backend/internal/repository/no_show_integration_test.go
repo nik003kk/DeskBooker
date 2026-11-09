@@ -98,4 +98,21 @@ func testNoShowExpiration(t *testing.T, pool *pgxpool.Pool, owner string) {
 		t.Fatalf("rebooking changed history: %v", err)
 	}
 
+	var events int
+	var event, previous, next, message string
+	var occurred time.Time
+	err = pool.QueryRow(ctx, "SELECT count(*) FROM public.reservation_audit_log WHERE reservation_id=$1", due.ID).Scan(&events)
+	if err != nil || events != 1 {
+		t.Fatalf("expected one audit event, got %d: %v", events, err)
+	}
+	err = pool.QueryRow(ctx, "SELECT event_type,previous_status,new_status,occurred_at,message FROM public.reservation_audit_log WHERE reservation_id=$1", due.ID).Scan(&event, &previous, &next, &occurred, &message)
+	if err != nil || event != "NO_SHOW_EXPIRED" || previous != "CONFIRMED" || next != "EXPIRED" || occurred.IsZero() || message != "Rezervacija potekla zaradi odsotnosti check-in-a" {
+		t.Fatalf("invalid audit event: %s %s %s %v", event, previous, next, err)
+	}
+	for _, original := range protected {
+		if err := pool.QueryRow(ctx, "SELECT count(*) FROM public.reservation_audit_log WHERE reservation_id=$1", original.ID).Scan(&events); err != nil || events != 0 {
+			t.Fatalf("audit created for unchanged reservation: %v", err)
+		}
+	}
+
 }

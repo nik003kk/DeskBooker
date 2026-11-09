@@ -32,3 +32,27 @@ ali nove rezervacije v prekrivajočem se terminu. Iskanje in preverjanje
 uporabljata isti seznam blokirajočih stanj: `PENDING`, `CONFIRMED` in
 `CHECKED_IN`, usklajen z omejitvijo baze. Po novi rezervaciji vir
 ponovno postane zaseden. Prejšnja rezervacija ostane `EXPIRED` v zgodovini.
+
+
+## Revizijska sled (DB-066)
+
+Migracija 12 ustvari `public.reservation_audit_log`. Vsak samodejni
+prehod zapiše ID rezervacije, dogodek `NO_SHOW_EXPIRED`, prejšnje stanje
+`CONFIRMED`, novo stanje `EXPIRED`, čas PostgreSQL in sporočilo
+**Rezervacija potekla zaradi odsotnosti check-in-a**. PIN in osebni
+podatki niso del revizijskega zapisa.
+
+Sprememba stanja in zapis dogodka sta del istega atomskega SQL stavka.
+Če zapis v revizijsko tabelo ne uspe, se stanje ne spremeni. Unikatna
+omejitev nad rezervacijo in tipom dogodka prepreči podvojeno sled.
+Migracija down odstrani revizijsko tabelo skupaj z revizijsko zgodovino,
+rezervacije pa ohrani.
+
+Primer pregleda (samo ID namenske testne rezervacije):
+
+```sql
+SELECT reservation_id,event_type,previous_status,new_status,occurred_at,message
+FROM public.reservation_audit_log
+WHERE reservation_id = 'UUID_TESTNE_REZERVACIJE'
+ORDER BY occurred_at;
+```
