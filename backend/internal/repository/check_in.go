@@ -43,7 +43,7 @@ func (s *BookingStore) CheckInReservation(ctx context.Context, id, userID, pin s
 	if err = tx.QueryRow(ctx, "SELECT clock_timestamp()").Scan(&now); err != nil {
 		return models.Reservation{}, fmt.Errorf("read check-in clock: %w", err)
 	}
-	if now.Before(saved.StartsAt.Add(-10*time.Minute)) || now.After(saved.StartsAt.Add(15*time.Minute)) || !now.Before(saved.EndsAt) {
+	if !checkInWindowOpen(now, saved.StartsAt, saved.EndsAt) {
 		return models.Reservation{}, ErrCheckInWindow
 	}
 	saved, err = scanReservation(tx.QueryRow(ctx,

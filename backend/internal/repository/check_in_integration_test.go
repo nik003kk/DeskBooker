@@ -118,4 +118,26 @@ func TestCheckInIntegration(t *testing.T) {
 	if _, err = store.CheckInReservation(ctx, futureID, owner, "0043"); !errors.Is(err, ErrCheckInWindow) {
 		t.Fatalf("future check-in: %v", err)
 	}
+	// Independent resource avoids overlap while testing late and terminal states.
+	var lateResource, lateID string
+	err = pool.QueryRow(ctx, "INSERT INTO public.resources(name,type) VALUES('Late check-in desk','DESK') RETURNING id").Scan(&lateResource)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = pool.QueryRow(ctx, "INSERT INTO public.reservations(user_id,resource_id,starts_at,ends_at,status,check_in_code) VALUES($1,$2,clock_timestamp()-interval '20 minutes',clock_timestamp()+interval '40 minutes','CONFIRMED','0044') RETURNING id", owner, lateResource).Scan(&lateID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = store.CheckInReservation(ctx, lateID, owner, "0044"); !errors.Is(err, ErrCheckInWindow) {
+		t.Fatalf("late check-in: %v", err)
+	}
+	for _, status := range []string{"CANCELLED", "COMPLETED", "PENDING"} {
+		if _, err = pool.Exec(ctx, "UPDATE public.reservations SET status=$2 WHERE id=$1", lateID, status); err != nil {
+			t.Fatal(err)
+		}
+		if _, err = store.CheckInReservation(ctx, lateID, owner, "0044"); !errors.Is(err, ErrCheckInStatus) {
+			t.Fatalf("status %s: %v", status, err)
+		}
+	}
+
 }
