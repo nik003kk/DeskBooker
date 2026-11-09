@@ -29,7 +29,7 @@ test('check-in modal preserves PIN, handles failures, prevents duplicate submiss
     const id = '11111111-1111-4111-8111-111111111111'
     root = createRoot(document.getElementById('root'))
     await act(async () => root.render(React.createElement(CheckInModal, {
-      reservation: { id }, options: { token: 'test-token' }, onClose: () => {}, onSuccess: value => { saved = value },
+      reservation: { id, status: 'CONFIRMED', starts_at: new Date(Date.now() + 300000).toISOString(), ends_at: new Date(Date.now() + 3600000).toISOString() }, options: { token: 'test-token' }, onClose: () => {}, onSuccess: value => { saved = value },
     })))
     const inputs = [...document.querySelectorAll('input')]
     assert.equal(inputs.length, 4)
@@ -70,6 +70,14 @@ test('check-in modal preserves PIN, handles failures, prevents duplicate submiss
     })
     assert.equal(requests, 2)
     assert.equal(saved.status, 'CHECKED_IN')
+    await act(async () => root.render(React.createElement(CheckInModal, {
+      reservation: { id, status: 'CONFIRMED', starts_at: new Date(Date.now() - 3600000).toISOString(), ends_at: new Date(Date.now() + 3600000).toISOString() },
+      options: { token: 'test-token' }, onClose: () => {}, onSuccess: () => assert.fail('closed window accepted'),
+    })))
+    assert.match(document.querySelector('.check-in-countdown').textContent, /potekel/)
+    assert.equal(document.querySelector('button[type="submit"]').disabled, true)
+    await act(async () => document.querySelector('form').dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true })))
+    assert.equal(requests, 2)
     await act(async () => root.unmount())
     root = null
     assert.equal(document.activeElement, opener)

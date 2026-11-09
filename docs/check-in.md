@@ -52,3 +52,8 @@ po ponovni prijavi ali osvežitvi. Povezavo lahko shraniš med zaznamke.
 PIN ostane samo v vnosu modalnega okna in se ne shrani v brskalnik ali URL.
 Modal podpira štiri polja, lepljenje kode, premikanje s tipkovnico,
 ponovni vnos po napaki in preprečevanje podvojenih zahtevkov.
+
+Odštevalnik se posodablja vsako sekundo in po vrnitvi na zavihek.
+Pred odprtjem pokaže preostanek do odprtja, med oknom čas do zaprtja,
+po zaprtju pa onemogoči potrditev tudi v že odprtem modalnem oknu.
+Ura brskalnika je informativna; API vedno ponovno preveri čas v bazi.
