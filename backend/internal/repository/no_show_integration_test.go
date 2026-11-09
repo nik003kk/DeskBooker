@@ -66,4 +66,36 @@ func testNoShowExpiration(t *testing.T, pool *pgxpool.Pool, owner string) {
 			t.Fatalf("protected reservation changed: %s %v", original.Status, err)
 		}
 	}
+	available, err := store.IsResourceAvailable(ctx, due.ResourceID, due.StartsAt, due.EndsAt)
+	if err != nil || !available {
+		t.Fatalf("expired reservation blocks availability: %v %v", available, err)
+	}
+	matches, err := store.SearchResources(ctx, models.ResourceSearch{StartsAt: &due.StartsAt, EndsAt: &due.EndsAt})
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, resource := range matches {
+		if resource.ID == due.ResourceID {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("released resource missing from search")
+	}
+	start := now.Add(time.Minute).Truncate(time.Minute)
+	end := start.Add(30 * time.Minute)
+	rebooked, err := NewBookingStore(pool).CreateConfirmedReservation(ctx, models.CreateReservationInput{UserID: owner, ResourceID: due.ResourceID, StartsAt: start, EndsAt: end})
+	if err != nil || rebooked.Status != models.ReservationConfirmed {
+		t.Fatalf("rebooking released resource: %v", err)
+	}
+	available, err = store.IsResourceAvailable(ctx, due.ResourceID, start, end)
+	if err != nil || available {
+		t.Fatalf("new confirmed booking does not block resource: %v %v", available, err)
+	}
+	history, err := store.GetReservation(ctx, due.ID)
+	if err != nil || history.Status != models.ReservationExpired {
+		t.Fatalf("rebooking changed history: %v", err)
+	}
+
 }

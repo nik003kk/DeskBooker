@@ -23,3 +23,12 @@ se preostale obdelajo v naslednjih minutnih pregledih.
 Pri običajni obremenitvi se rezervacija sprosti ob prvem pregledu po
 izteku 15-minutnega okna, torej približno v naslednji minuti. Po ponovnem
 zagonu se stare zapadle rezervacije preverijo takoj.
+
+
+## Ponovna rezervacija (DB-065)
+
+`EXPIRED` ne blokira iskanja, neposrednega preverjanja razpoložljivosti
+ali nove rezervacije v prekrivajočem se terminu. Iskanje in preverjanje
+uporabljata isti seznam blokirajočih stanj: `PENDING`, `CONFIRMED` in
+`CHECKED_IN`, usklajen z omejitvijo baze. Po novi rezervaciji vir
+ponovno postane zaseden. Prejšnja rezervacija ostane `EXPIRED` v zgodovini.
