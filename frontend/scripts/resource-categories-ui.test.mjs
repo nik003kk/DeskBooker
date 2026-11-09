@@ -58,3 +58,28 @@ test('general resource search still lists every category and allows changing typ
     assert.equal(document.querySelector('select').disabled, false)
   })
 })
+
+test('returning to a category refreshes edits and manual refresh removes deactivated resources', async () => {
+  let name = 'Soba iz baze'; let active = true
+  const requested = []
+  await harness('/rooms', async url => { requested.push(url); return Response.json({ resources: active ? [{ ...fixtures[1], name }] : [] }) }, async ({ act, dom }) => {
+    name = 'Soba po urejanju'
+    await act(async () => window.dispatchEvent(new dom.window.Event('focus')))
+    assert.equal(document.querySelector('.resource-result-card h3').textContent, name)
+    active = false
+    await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Osveži vire').click())
+    assert.equal(document.querySelectorAll('.resource-result-card').length, 0)
+    assert.match(document.querySelector('.resource-search-results').textContent, /Ni aktivnih virov/)
+    assert.ok(requested.every(url => new URL(url).searchParams.get('type') === 'MEETING_ROOM'))
+  })
+})
+test('failed category loads have no demo fallback and retry the same type', async () => {
+  let attempts = 0
+  await harness('/parking', async url => ++attempts === 1 ? new Response('{}', { status: 500 }) : responseFor(url), async ({ act }) => {
+    assert.equal(document.querySelectorAll('.resource-result-card').length, 0)
+    assert.match(document.querySelector('[role="alert"]').textContent, /Iskanje ni uspelo/)
+    await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Poskusi znova').click())
+    assert.equal(document.querySelector('.resource-result-card h3').textContent, fixtures[2].name)
+    assert.equal(document.querySelector('select').value, 'PARKING_SPOT')
+  })
+})

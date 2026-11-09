@@ -23,3 +23,17 @@ zato ne more biti tiho nadomeščen z nedokončanim vnosom v obrazcu.
 Menjava kategorije odpre njen lasten prazen nabor filtrov.
 
 Splošna stran /search še naprej omogoča iskanje po vseh treh vrstah.
+
+## Osveževanje in stanja (DB-117)
+
+Gumb Osveži vire in vrnitev na zavihek ponovno prebereta podatke iz API-ja.
+Dodan ali urejen vir se tako prikaže brez ponovnega zagona aplikacije,
+deaktiviran pa izgine. Uporabljeni tip, termin in oprema se pri osvežitvi
+in ponovnem poskusu ohranijo. Osvežitev ne potrdi še nedokončanih sprememb
+v obrazcu: če so filtri spremenjeni, ostane rezervacija onemogočena do
+klika Poišči vire. Med nalaganjem in ob napaki rezervacija ni mogoča.
+
+Pri praznem rezultatu se pokaže ustrezno prazno stanje, pri napaki gumb
+Poskusi znova. Prikaz se nikoli ne zapolni s predstavitvenimi podatki.
+Predhodne zahteve se prekinejo; njihov pozen odgovor ne prepiše novega
+izbora ali druge kategorije.

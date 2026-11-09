@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { paths } from '../routes.js'
 import { Card, StatusBadge, Button } from './ui.jsx'
@@ -21,13 +21,15 @@ export default function ResourceSearchPage({ fixedType = '', title = 'Iskanje vi
   const [error, setError] = useState('')
   const [searched, setSearched] = useState(false)
   const pending = useRef(null)
+  const applied = useRef({ filters: baseFilters, isFiltered: false })
 
-  async function load(filters, isFiltered = false) {
+  const load = useCallback(async (filters, isFiltered = false, preserveDraft = false) => {
     pending.current?.abort()
     const controller = new AbortController()
     pending.current = controller
     const scoped = { ...filters, type: fixedType || filters.type || '' }
-    setDirty(false)
+    if (!preserveDraft) setDirty(false)
+    applied.current = { filters: scoped, isFiltered }
     setBusy(true)
     setError('')
     setSearched(isFiltered)
@@ -50,12 +52,20 @@ export default function ResourceSearchPage({ fixedType = '', title = 'Iskanje vi
         setBusy(false)
       }
     }
-  }
+  }, [fixedType, token, logout])
 
   useEffect(() => {
     load(baseFilters)
     return () => { pending.current?.abort(); pending.current = null }
-  }, [token, logout, baseFilters])
+  }, [load, baseFilters])
+
+  const refresh = useCallback(() => load(applied.current.filters, applied.current.isFiltered, true), [load])
+  useEffect(() => {
+    const resume = () => { if (document.visibilityState !== 'hidden') refresh() }
+    window.addEventListener('focus', resume)
+    document.addEventListener('visibilitychange', resume)
+    return () => { window.removeEventListener('focus', resume); document.removeEventListener('visibilitychange', resume) }
+  }, [refresh])
 
   return (
     <div className="page-stack resource-search-page">
@@ -65,7 +75,7 @@ export default function ResourceSearchPage({ fixedType = '', title = 'Iskanje vi
           <h1>{title}</h1>
           <p>{description}</p>
         </div>
-        <StatusBadge tone="blue">Dejanski podatki</StatusBadge>
+        <div className="resource-catalog-actions"><StatusBadge tone="blue">Dejanski podatki</StatusBadge><Button variant="secondary" disabled={busy} onClick={refresh}>Osveži vire</Button></div>
       </header>
       <div className="resource-search-layout">
         <ResourceSearchFilters key={fixedType || 'all'} fixedType={fixedType} busy={busy} onChange={() => setDirty(true)}
@@ -87,13 +97,13 @@ export default function ResourceSearchPage({ fixedType = '', title = 'Iskanje vi
             <Card className="empty-state" role="alert">
               <h3>Iskanje ni uspelo</h3>
               <p>{error}</p>
-              <Button variant="secondary" onClick={() => load(baseFilters)}>Poskusi znova</Button>
+              <Button variant="secondary" onClick={refresh}>Poskusi znova</Button>
             </Card>
           )}
           {!busy && !error && resources.length === 0 && (
             <Card className="empty-state" role="status">
-              <h3>Ni ustreznih virov</h3>
-              <p>Za izbrani termin in lastnosti ni zadetkov. Spremeni ali ponastavi filtre.</p>
+              <h3>{searched ? 'Ni ustreznih virov' : 'Ni aktivnih virov'}</h3>
+              <p>{searched ? 'Za izbrani termin in lastnosti ni zadetkov. Spremeni ali ponastavi filtre.' : 'Aktivnih virov te vrste še ni. Ko jih administrator doda ali aktivira, osveži seznam.'}</p>
               {searched && <p className="field-hint">Za ponastavitev uporabi gumb »Ponastavi filtre«.</p>}
             </Card>
           )}

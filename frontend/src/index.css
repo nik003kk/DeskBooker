@@ -243,3 +243,4 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .admin-users-success { padding: 14px; color: #176b3b; background: #e5f7ec; border-radius: 12px; }
 
 .resource-filter-notice { padding: 12px 16px; border-radius: 10px; color: #755517; background: #fff5da; }
+.resource-catalog-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
