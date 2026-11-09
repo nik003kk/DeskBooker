@@ -89,3 +89,55 @@ minutes, percent ali text. Neznani deleži so prazni, decimalno ločilo je
 pika, kodiranje UTF-8 z BOM za preglednice. JSON in CSV se izračunata ob
 posamezni zahtevi; če se rezervacije med njima spremenijo, se razlikujeta
 čas izračuna in podatki. Napake ostanejo JSON in niso ponujene kot CSV.
+
+## Pravice in skupni preizkus (DB-075)
+
+`manager` v bazi pomeni OFFICE_MANAGER iz uporabniške zgodbe, `admin`
+pa ADMIN. Na vsaki JSON in CSV zahtevi se ponovno preverita vloga in
+stanje računa v bazi, ne v zastarelem žetonu. Brez veljavne prijave velja
+401, zaposlenim ali neaktivnim računom 403. Tudi neposreden obisk
+`/analytics` v aplikaciji je zaščiten. API ostaja avtoritativen.
+
+Po posodobitvi iz korena projekta:
+
+```bash
+git switch development
+git pull --ff-only origin development
+cd backend
+go run ./cmd/migrate up
+go run ./cmd/migrate status
+go run ./cmd/server
+```
+
+Pričakuj **13, dirty: false**. V drugem terminalu iz korena projekta:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+1. Prijavi se kot aktivni admin ali manager in odpri **Analitika**.
+2. Preveri KPI, grafa in tabelo podatkov. Preklopi 7 dni, 30 dni in
+   poljubno obdobje ter klikni Osveži podatke. Primerjava se mora
+   nanašati na neposredno predhodno enako dolgo obdobje.
+3. Izvozi CSV. Preveri datuma in čas izračuna, skupno število rezervacij,
+   EXPIRED ter dnevne deleže glede na API in prikaz. Ničelna osnova ni
+   neznan delež; neznani deleži so v prikazu —, v CSV pa prazni.
+4. Za obdobje brez rezervacij pričakuj ničelne seštevke in jasno prazno
+   stanje, brez navideznih rezervacij ali no-show odstotka.
+5. Z računom employee preveri, da povezave ni in neposreden obisk
+   `/analytics` ne prikaže podatkov. JSON in CSV API morata vrniti 403.
+6. Brez žetona oba API endpointa vrneta 401; napačen datum s pravilnimi
+   pravicami vrne 400.
+
+Primer s svežim TOKEN:
+
+```bash
+curl -i "http://localhost:8080/api/analytics?from=2026-11-01&to=2026-11-09" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Deleže lahko neodvisno preveriš prek status_counts: EXPIRED deliš z
+vsoto EXPIRED, CHECKED_IN in COMPLETED. Dnevni delež je booked_minutes /
+capacity_minutes × 100. CSV vključuje obe osnovi, da je preverjanje mogoče.

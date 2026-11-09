@@ -16,6 +16,7 @@ import BookingConfirmPage from './components/BookingConfirmPage.jsx'
 import BookingSuccessPage from './components/BookingSuccessPage.jsx'
 import CheckInPage from './components/CheckInPage.jsx'
 import AnalyticsPage from './components/AnalyticsPage.jsx'
+import AnalyticsRoute from './components/AnalyticsRoute.jsx'
 import { canManageResources } from './resource-permissions.js'
 
 const resourceSamples = {
@@ -254,7 +255,7 @@ export default function App() {
           <Route path={paths.adminResources} element={<ManagerRoute><AdminResourcesPage /></ManagerRoute>} />
           <Route path={paths.createResource} element={<ManagerRoute><CreateResourcePage /></ManagerRoute>} />
           <Route path={paths.profile} element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          <Route path={paths.analytics} element={<ManagerRoute><AnalyticsPage /></ManagerRoute>} />
+          <Route path={paths.analytics} element={<AnalyticsRoute><AnalyticsPage /></AnalyticsRoute>} />
           <Route path={paths.search} element={<ProtectedRoute><ResourceSearchPage /></ProtectedRoute>} />
           <Route path={paths.checkIn} element={<ProtectedRoute><CheckInPage /></ProtectedRoute>} />
           <Route path={paths.bookingSuccess} element={<ProtectedRoute><BookingSuccessPage /></ProtectedRoute>} />
