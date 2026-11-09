@@ -9,7 +9,7 @@ import (
 )
 
 // SearchResources returns active resources matching filters.
-// A time window excludes overlapping PENDING / CONFIRMED reservations.
+// A time window excludes overlapping PENDING / CONFIRMED / CHECKED_IN reservations.
 // Multiple equipment filters use all-of matching, not any-of.
 func (s *Store) SearchResources(ctx context.Context,filter models.ResourceSearch)([]models.Resource,error){
  var kind any
@@ -25,7 +25,7 @@ func (s *Store) SearchResources(ctx context.Context,filter models.ResourceSearch
   "AND ($1::text IS NULL OR r.type=$1) "+
   "AND ($2::timestamptz IS NULL OR NOT EXISTS ("+
     "SELECT 1 FROM public.reservations b "+
-    "WHERE b.resource_id=r.id AND b.status IN ('PENDING','CONFIRMED','CHECKED_IN') "+
+    "WHERE b.resource_id=r.id AND b.status IN "+blockingReservationStatusesSQL+" "+
     "AND b.starts_at < $3::timestamptz AND b.ends_at > $2::timestamptz)) "+
   "AND NOT EXISTS ("+
     "SELECT 1 FROM unnest($4::text[]) AS wanted(feature) "+
