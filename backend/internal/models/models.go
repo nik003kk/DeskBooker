@@ -33,6 +33,7 @@ const (
 	ReservationPending   ReservationStatus = "PENDING"
 	ReservationConfirmed ReservationStatus = "CONFIRMED"
 	ReservationCheckedIn ReservationStatus = "CHECKED_IN"
+	ReservationExpired   ReservationStatus = "EXPIRED"
 	ReservationCancelled ReservationStatus = "CANCELLED"
 	ReservationCompleted ReservationStatus = "COMPLETED"
 )

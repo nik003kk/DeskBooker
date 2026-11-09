@@ -52,7 +52,7 @@ func main() {
     workerDone := make(chan struct{})
     go func() {
         defer close(workerDone)
-        if err := worker.Run(ctx, worker.NoShowInterval, store.CountNoShows, log.Printf); err != nil {
+        if err := worker.Run(ctx, worker.NoShowInterval, store.ExpireNoShows, log.Printf); err != nil {
             log.Print("No-show worker: invalid configuration")
         }
     }()
