@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../AuthContext.jsx'
-import { Button, Card, StatusBadge } from './ui.jsx'
+import { Button, Card } from './ui.jsx'
 import CheckInModal from './CheckInModal.jsx'
+import CheckInStatus from './CheckInStatus.jsx'
 import { loadCheckIn } from '../check-in-api.js'
 import { paths } from '../routes.js'
 import { useCheckInWindow } from '../use-check-in-window.js'
@@ -41,7 +42,7 @@ export default function CheckInPage() {
     <Card className="auth-card">
       <span className="eyebrow">Tvoja rezervacija</span>
       <h1>Check-in</h1>
-      <StatusBadge tone="blue">{reservation.status}</StatusBadge>
+      <CheckInStatus reservation={reservation} />
       <h2>{data.resource.name}</h2>
       <dl className="profile-details">
         <div><dt>Začetek</dt><dd>{officeTime(reservation.starts_at)}</dd></div>
