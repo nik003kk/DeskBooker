@@ -140,4 +140,6 @@ func TestCheckInIntegration(t *testing.T) {
 		}
 	}
 
+	t.Run("no-show expiration", func(t *testing.T) { testNoShowExpiration(t, pool, owner) })
+
 }
