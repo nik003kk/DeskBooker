@@ -79,5 +79,6 @@ func (s *Store) ReservationAnalytics(ctx context.Context, period models.Analytic
 	}
 	report.OccupancyRate = models.AnalyticsPercent(booked, capacity)
 	report.Timezone = "Europe/Ljubljana"
+	report.NoShow = models.ReservationNoShow(report.StatusCounts)
 	return report, nil
 }

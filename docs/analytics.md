@@ -34,3 +34,13 @@ Kapaciteta upošteva datum nastanka vira, tudi del dneva, če je nastal
 med 09–17. Zgodovina aktivacij in deaktivacij se ne shranjuje, zato je
 obseg kapacitete trenutni aktivni nabor, ne rekonstrukcija preteklega
 števila virov. Skupni statusni seštevki vključujejo vse vire.
+
+
+## No-show (DB-070)
+
+`no_show.rate` = EXPIRED / (EXPIRED + CHECKED_IN + COMPLETED) × 100.
+Potrjene rezervacije z neznanim izidom, PENDING in CANCELLED so izključene.
+Prehod uspešne rezervacije iz CHECKED_IN v COMPLETED zato ne spremeni
+razmerja. Vsi seštevki uporabljajo isto obdobje po začetku rezervacije.
+Brez znanih izidov je delež null, ne 0 %. API vrne tudi števec `expired`,
+`attended` in imenovalec `eligible`, da je izračun preverljiv.

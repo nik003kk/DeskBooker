@@ -58,6 +58,9 @@ func testAnalytics(t *testing.T, pool *pgxpool.Pool, owner string) {
 	if err != nil || empty.TotalReservations != 0 || empty.ActiveReservations != 0 {
 		t.Fatalf("empty range %#v %v", empty, err)
 	}
+	if report.NoShow.Eligible != 3 || report.NoShow.Expired != 1 || report.NoShow.Rate == nil || *report.NoShow.Rate != 33.33 || empty.NoShow.Rate != nil {
+		t.Fatalf("no-show report %#v empty %#v", report.NoShow, empty.NoShow)
+	}
 	if len(report.Daily) != 3 || len(report.Weekdays) != 5 || report.OccupancyRate == nil || *report.OccupancyRate != 11.46 {
 		t.Fatalf("occupancy report %#v", report)
 	}
