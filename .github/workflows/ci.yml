@@ -33,7 +33,7 @@ jobs:
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
-      - name: Check migration and transactional check-in against PostgreSQL
+      - name: Check reservation lifecycle, concurrency and rollback against PostgreSQL
         working-directory: backend
         env:
           CHECK_IN_TEST_DATABASE_URL: postgres://deskbooker:integration-only@localhost:5432/check_in_test?sslmode=disable

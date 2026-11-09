@@ -56,3 +56,51 @@ FROM public.reservation_audit_log
 WHERE reservation_id = 'UUID_TESTNE_REZERVACIJE'
 ORDER BY occurred_at;
 ```
+
+
+## Avtomatizirani preizkusi (DB-067)
+
+GitHub Actions uporablja ločen PostgreSQL 17 in `go test -race`.
+Poleg check-in-a preveri večkratne preglede, osem sočasnih workerjev,
+en sam revizijski dogodek, mejo točno 15 minut in mikrosekundo za njo.
+Preizkusi z nadzorovanimi transakcijskimi zaklepi preverijo oba vrstna
+reda check-in-a in poteka brez čakanja na resnično časovno mejo.
+Namerno zavrnjen audit INSERT mora povrniti spremembo statusa;
+ponovni pregled po odstranitvi napake mora uspeti natanko enkrat.
+
+## Skupni lokalni preizkus
+
+1. Posodobi development, ustavi backend, izvedi `go run ./cmd/migrate up`
+   in `go run ./cmd/migrate status`. Pričakovana verzija je **12**,
+   `dirty: false`. Ponovno zaženi `go run ./cmd/server`.
+2. Prijavi se s svojim testnim računom in prek `GET /api/auth/me`
+   pridobi svoj uporabniški ID.
+3. Iz korena repozitorija ustvari namenski zamujeni testni primer:
+
+```bash
+docker compose exec -T postgres psql -X -v ON_ERROR_STOP=1 \
+  -U deskbooker -d deskbooker -v user_id=TVOJ_UPORABNISKI_UUID \
+  < backend/scripts/no-show-demo.sql
+```
+
+Skript ustvari nov, posebej poimenovan vir in novo rezervacijo za
+prijavljenega testnega uporabnika. Začetek postavi 16 minut nazaj,
+zato ni treba čakati 15 minut. Namenjen je lokalni razvojni bazi.
+Drugih rezervacij ne spremeni. Izpiše `resource_id` in `reservation_id`.
+
+4. V naslednji minuti mora worker izpisati `processed 1 reservations`
+   (ali več, če so zapadle tudi druge rezervacije). Po ponovnem zagonu
+   strežnika se pregled izvede takoj.
+5. Zaščiten `GET /api/reservations/<id>` mora pokazati `EXPIRED` brez
+   `checked_in_at`. Stran `/reservations/<id>/check-in` po osvežitvi
+   pokaže ta status in ne omogoča potrditve prihoda.
+6. Preveri en dogodek v `reservation_audit_log`. Po naslednjem pregledu
+   mora ostati natanko en dogodek in stanje `EXPIRED`.
+7. V iskanju rezerviraj ustvarjeni vir za termin v prihodnosti znotraj
+   naslednje ure. Nova rezervacija mora uspeti, stara ostati `EXPIRED`.
+8. Predhodna rezervacija s potrjeno prisotnostjo mora ostati
+   `CHECKED_IN` in še naprej blokirati svoj termin.
+
+Skript ne spreminja sistemske ure, ne dodaja testnih API obvozov in
+ne izbriše svojih testnih zapisov. Namenski testni vir lahko po
+preizkusu deaktiviraš v upravljanju virov.
