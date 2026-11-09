@@ -82,7 +82,7 @@ func main() {
             reservations.DetailHandler(store),
         )
     server.RegisterAnalytics(router,auth.RequireJWT(tokens),auth.RequireAnalyticsManager(store),analytics.SummaryHandler(store),analytics.CSVHandler(store))
-    server.RegisterAdminUsers(router,auth.RequireJWT(tokens),auth.RequireAdministrator(store),adminusers.ListHandler(store))
+    server.RegisterAdminUsers(router,auth.RequireJWT(tokens),auth.RequireAdministrator(store),adminusers.ListHandler(store),adminusers.ChangeRoleHandler(repository.NewUserAdminStore(pool)))
     srv := &http.Server{
         Addr: ":"+port,
         Handler: router,
