@@ -25,7 +25,7 @@ func (s *Store) SearchResources(ctx context.Context,filter models.ResourceSearch
   "AND ($1::text IS NULL OR r.type=$1) "+
   "AND ($2::timestamptz IS NULL OR NOT EXISTS ("+
     "SELECT 1 FROM public.reservations b "+
-    "WHERE b.resource_id=r.id AND b.status IN ('PENDING','CONFIRMED') "+
+    "WHERE b.resource_id=r.id AND b.status IN ('PENDING','CONFIRMED','CHECKED_IN') "+
     "AND b.starts_at < $3::timestamptz AND b.ends_at > $2::timestamptz)) "+
   "AND NOT EXISTS ("+
     "SELECT 1 FROM unnest($4::text[]) AS wanted(feature) "+
@@ -44,3 +44,4 @@ func (s *Store) SearchResources(ctx context.Context,filter models.ResourceSearch
  if err:=rows.Err();err!=nil {return nil,fmt.Errorf("iterate resource search: %w",err)}
  return result,nil
 }
+

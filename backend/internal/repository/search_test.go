@@ -17,7 +17,7 @@ func TestSearchResourcesUsesBoundFilters(t *testing.T){
  })
  if err==nil{t.Fatal("expected query failure")}
  if len(db.args)!=4 || db.args[0]!="DESK" ||
-  !strings.Contains(db.sql,"b.status IN ('PENDING','CONFIRMED')") ||
+  !strings.Contains(db.sql,"b.status IN ('PENDING','CONFIRMED','CHECKED_IN')") ||
   !strings.Contains(db.sql,"r.is_active=TRUE") ||
   strings.Contains(db.sql,"Monitor") ||
   !strings.Contains(db.sql,"b.starts_at < $3") ||
@@ -48,3 +48,4 @@ func TestSearchResourcesNoEquipmentFilterStillMatches(t *testing.T) {
  if !strings.Contains(db.sql,"unnest($4::text[])") {t.Fatal("empty filter must be treated as vacuous all-of match")}
  if values,ok:=db.args[3].([]string);!ok || len(values)!=0 {t.Fatalf("unexpected empty filters: %#v",db.args[3])}
 }
+
