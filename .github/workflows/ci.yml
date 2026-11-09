@@ -86,3 +86,38 @@ jobs:
       - name: Build backend
         run: go build ./...
 
+
+  docker:
+    name: Docker Compose
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      POSTGRES_PASSWORD: compose-ci-only-password
+      POSTGRES_PORT: "5433"
+      JWT_SECRET: compose-ci-only-jwt-secret-at-least-32-characters
+      REGISTRATION_EMAIL_DOMAIN: example.com
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject missing mandatory configuration
+        run: |
+          if POSTGRES_PASSWORD= docker compose config -q 2>/dev/null; then exit 1; fi
+          if JWT_SECRET= docker compose config -q 2>/dev/null; then exit 1; fi
+          docker compose config -q
+      - name: Build and start complete stack
+        run: docker compose up -d --build --wait --wait-timeout 120
+      - name: Check routes, API proxy and authentication
+        run: python3 scripts/docker-smoke.py
+      - name: Repeat migrations and verify persistence after recreation
+        run: |
+          docker compose run --rm migrate
+          docker compose down
+          docker compose up -d --wait --wait-timeout 120
+          python3 scripts/docker-smoke.py --existing
+      - name: Container diagnostics
+        if: failure()
+        run: |
+          docker compose ps -a
+          docker compose logs --tail=100
+      - name: Clean up test volumes
+        if: always()
+        run: docker compose down -v

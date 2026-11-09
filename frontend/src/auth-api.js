@@ -6,7 +6,7 @@ export class AuthAPIError extends Error {
     this.status = status
   }
 }
-export async function authorizedFetch(path, { token, logout, fetchImpl = fetch, apiBaseUrl = 'http://localhost:8080/api', ...options } = {}) {
+export async function authorizedFetch(path, { token, logout, fetchImpl = fetch, apiBaseUrl = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8080/api', ...options } = {}) {
   if (!token) { logout?.(); throw new AuthAPIError(401) }
   const response = await fetchImpl(apiBaseUrl.replace(/\/$/, '') + path, {
     ...options,
@@ -17,3 +17,4 @@ export async function authorizedFetch(path, { token, logout, fetchImpl = fetch, 
   if (!response.ok) throw new AuthAPIError(response.status)
   return response
 }
+
