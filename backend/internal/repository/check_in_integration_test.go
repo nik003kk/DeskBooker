@@ -144,4 +144,6 @@ func TestCheckInIntegration(t *testing.T) {
 
 	t.Run("no-show concurrency and rollback", func(t *testing.T) { testNoShowSafety(t, pool, owner) })
 
+	t.Run("analytics", func(t *testing.T) { testAnalytics(t, pool, owner) })
+
 }
