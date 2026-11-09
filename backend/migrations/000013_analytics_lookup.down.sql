@@ -1,0 +1,1 @@
+DROP INDEX public.reservations_analytics_starts_at_idx;

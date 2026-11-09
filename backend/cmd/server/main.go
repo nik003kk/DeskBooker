@@ -18,6 +18,7 @@ import (
     "github.com/nik003kk/DeskBooker/backend/internal/resources"
     "github.com/nik003kk/DeskBooker/backend/internal/reservations"
     "github.com/nik003kk/DeskBooker/backend/internal/worker"
+    "github.com/nik003kk/DeskBooker/backend/internal/analytics"
 )
 
 func main() {
@@ -58,9 +59,7 @@ func main() {
     }()
     defer func() { stop(); <-workerDone }()
 
-    srv := &http.Server{
-		Addr:              ":" + port,
-		Handler:           server.NewRouterWithReservations(
+    router := server.NewRouterWithReservations(
             pool, allowedOrigins,
             auth.RegisterHandler(store, os.Getenv("REGISTRATION_EMAIL_DOMAIN")),
             auth.LoginHandlerWithJWT(store, tokens),
@@ -80,7 +79,11 @@ func main() {
             reservations.CreateHandler(repository.NewBookingStore(pool)),
             reservations.CheckInHandler(repository.NewBookingStore(pool)),
             reservations.DetailHandler(store),
-        ),
+        )
+    server.RegisterAnalytics(router,auth.RequireJWT(tokens),auth.RequireResourceManager(store),analytics.SummaryHandler(store))
+    srv := &http.Server{
+        Addr: ":"+port,
+        Handler: router,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
