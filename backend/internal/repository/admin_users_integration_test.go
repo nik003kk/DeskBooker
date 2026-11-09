@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nik003kk/DeskBooker/backend/internal/models"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -52,6 +53,48 @@ func testUserAdministration(t *testing.T, pool *pgxpool.Pool) {
 	}
 	if _, err := changer.ChangeUserRole(ctx, admin, admin, models.RoleEmployee); !errors.Is(err, ErrSelfRoleChange) {
 		t.Fatalf("admin changed self: %v", err)
+	}
+
+	if _, err := changer.ChangeUserRole(ctx, admin, strings.ToUpper(admin), models.RoleEmployee); !errors.Is(err, ErrSelfRoleChange) {
+		t.Fatalf("uppercase UUID bypassed self protection: %v", err)
+	}
+	if _, err := changer.ChangeUserRole(ctx, admin, admin, models.RoleAdmin); !errors.Is(err, ErrSelfRoleChange) {
+		t.Fatalf("self assignment was allowed: %v", err)
+	}
+	var left, right string
+	for i, dest := range []*string{&left, &right} {
+		if err := pool.QueryRow(ctx, "INSERT INTO public.users(email,password_hash,first_name,last_name,role) VALUES($1,'hash','Concurrent','Admin','admin') RETURNING id", []string{"left-admin@example.test", "right-admin@example.test"}[i]).Scan(dest); err != nil {
+			t.Fatal(err)
+		}
+	}
+	results := make(chan error, 2)
+	var wg sync.WaitGroup
+	for _, pair := range [][2]string{{left, right}, {right, left}} {
+		wg.Add(1)
+		go func(actor, target string) {
+			defer wg.Done()
+			_, err := changer.ChangeUserRole(ctx, actor, target, models.RoleEmployee)
+			results <- err
+		}(pair[0], pair[1])
+	}
+	wg.Wait()
+	close(results)
+	success, denied := 0, 0
+	for err := range results {
+		if err == nil {
+			success++
+		} else if errors.Is(err, ErrAdminRequired) {
+			denied++
+		} else {
+			t.Fatal(err)
+		}
+	}
+	if success != 1 || denied != 1 {
+		t.Fatalf("concurrent mutual demotion: success=%d denied=%d", success, denied)
+	}
+	var remaining int
+	if err := pool.QueryRow(ctx, "SELECT count(*) FROM public.users WHERE id=ANY($1::uuid[]) AND role='admin' AND status='active'", []string{left, right}).Scan(&remaining); err != nil || remaining != 1 {
+		t.Fatalf("no active administrator remained: %d %v", remaining, err)
 	}
 
 }
