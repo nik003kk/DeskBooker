@@ -43,3 +43,8 @@ test('check-in is a private reservation route outside the main menu', () => {
   assert.equal(paths.checkIn, '/reservations/:id/check-in')
   assert.ok(!navigation.some(route => route.path === paths.checkIn))
 })
+
+test('analytics navigation points to its manager workflow', () => {
+  assert.equal(paths.analytics, '/analytics')
+  assert.ok(navigation.some(route => route.path === paths.analytics))
+})

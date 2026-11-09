@@ -200,3 +200,11 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .status-badge--green { background: #e5f7ec; color: #176b3b; }
 .check-in-confirmed { margin: 20px 0; padding: 20px; border: 1px solid #afd9be; border-radius: 14px; background: #f3fbf6; }
 .check-in-confirmed p { margin: 12px 0 0; color: #225437; }
+
+.analytics-kpis { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
+.analytics-kpi { min-width: 0; padding: 24px; border-top: 3px solid #6799ff; }
+.analytics-kpi h2 { font-size: .98rem; font-weight: 650; }
+.analytics-kpi-value { display: block; margin: 16px 0 12px; font-size: clamp(1.8rem,3vw,2.6rem); letter-spacing: -.04em; color: #17233a; }
+.analytics-kpi p { font-size: .8rem; margin: 0; }
+@media(max-width:1000px) { .analytics-kpis { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:540px) { .analytics-kpis { grid-template-columns: 1fr; } }
