@@ -1,240 +1,67 @@
 # DeskBooker – frontend
 
-React 19 + Vite 7 + React Router.
+React 19, Vite 7 in React Router. Celotna namestitev, vloge in Docker zagon
+so opisani v [glavnem README-ju](../README.md).
 
-## Lokalni zagon
+## Lokalni razvoj
 
-Predpogoji: Node.js 20.19+ ali 22.12+ in npm.
-
-```bash
-cd frontend
-npm ci
-npm test
-npm run build
-npm run dev
-```
-
-V brskalniku odpri http://localhost:5173.
-
-## Navigacija in strani (DB-012)
-
-| Pot | Stran |
-| --- | --- |
-| `/` | Začetna stran |
-| `/desks` | Delovna mesta |
-| `/rooms` | Sejne sobe |
-| `/parking` | Parkirišča |
-| `/equipment` | Oprema |
-| `/my-reservations` | Moje rezervacije |
-| `/login` | Prijava |
-| Neznana pot | 404 |
-
-## UI komponente in odzivna postavitev (DB-013)
-
-- `src/components/ui.jsx`: ponovno uporabne komponente `Button`, `ButtonLink`, `Card`, `Field`, `SelectField`, `StatusBadge`.
-- `src/index.css`: skupni design tokens, stanja hover/focus/disabled, prilagodljive mreže in prelomi za tablične ter mobilne naprave.
-- Glava z aktivno navigacijo, dostopna preskočna povezava, začetni pregled virov, kartice in osnovni iskalni obrazec.
-- Iskanje po imenu in nadstropju uporablja **lokalne demonstracijske podatke**. Ne pošilja zahtevkov na backend in ne shranjuje rezervacij.
-- Gumbi »Rezerviraj (kmalu)« so onemogočeni, dokler funkcionalnost ni implementirana.
-
-**Wireframei:** v repozitoriju ob pripravi DB-013 ni bilo priloženih wireframe datotek. Uporabljena je začasna skladna vizualna osnova; po prejemu dejanskih wireframeov je treba preveriti in po potrebi uskladiti komponente.
-
-## Preverjanje
-
-```bash
-npm test
-npm run build
-npm run dev
-```
-
-V brskalniku ročno preveri:
-1. Poti `/`, `/desks`, `/rooms`, `/parking`, `/equipment`, `/my-reservations`, `/login` in neobstoječo pot.
-2. Na strani `/desks` vnesi `D-101` in izberi »Prikaži«: ostati mora ena kartica; `xyz-ne-obstaja` mora prikazati prazno stanje; »Ponastavi« ali »Počisti filter« vrne vse demonstracijske kartice.
-3. Na strani `/rooms` izberi 2. nadstropje: vidna morata biti Pohorje in Bled.
-4. Zaslon približno 375 px širok: navigacija je vodoravno premakljiva, kartice in obrazci se postavijo v en stolpec in brez vodoravnega razlivanja.
-5. Tab navigacija in vidna stanja fokusa, povezava »Preskoči na vsebino«, onemogočeni gumbi rezervacij.
-
-Produkcijska gradnja: `npm run build` ustvari `dist/`, ki je ignoriran v Git.
-
-## Registracijski obrazec (DB-025)
-
-Nova pot `/register` uporablja React obrazec za ime, priimek, službeni
-e-naslov, geslo in ponovitev gesla. Preverja zahtevana polja, domeno,
-dolžino gesla (**12–72 bajtov**) in ujemanje gesel ter pošlje
-`POST /api/auth/register` v obstoječi Go backend.
-Ob uspehu pokaže potrditev in povezavo na prijavo, ob že obstoječem
-naslovu pa razumljivo sporočilo. Geslo se ne zapisuje v browser storage.
-
-Za lokalni razvoj iz mape `frontend` ustvari `.env.local` (ta datoteka
-naj ostane izven Git):
+Potrebuješ Node.js 22.12+ in npm ter delujoč Go API na http://localhost:8080.
+Za nov lokalni frontend iz korena kopiraj `frontend/.env.example` v
+`frontend/.env.local`, če ta še ne obstaja. Nastavi:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:8080/api
-VITE_REGISTRATION_EMAIL_DOMAIN=gmail.com
+VITE_REGISTRATION_EMAIL_DOMAIN=example.com
 ```
 
-`VITE_REGISTRATION_EMAIL_DOMAIN` mora ustrezati nastavitvi
-`REGISTRATION_EMAIL_DOMAIN` v korenski `.env`. Za testiranje lahko
-obe nastavita `gmail.com`; v produkciji uporabi dejansko službeno domeno.
-Frontend validacija je uporabniška pomoč, **backend je avtoritativen**.
-Vsi `VITE_*` podatki so javni v brskalniku: nikoli ne nastavljaj
-`JWT_SECRET` ali gesel na frontend strani.
-
-Zagon (dva terminala): iz korena najprej
-`docker compose up -d postgres`, nato `cd backend && go run ./cmd/server`
-(zahteva korenski `.env` z veljavnim `JWT_SECRET` iz DB-024).
-V drugem terminalu izvedi:
+Domena mora biti ista kot `REGISTRATION_EMAIL_DOMAIN` v korenskem `.env`.
+V `VITE_*` ne vpisuj gesel ali ključev. Po spremembi znova zaženi Vite.
+Naslednje ukaze izvajaj iz `frontend`:
 
 ```bash
-cd frontend
 npm ci
-npm test
-npm run build
 npm run dev
 ```
 
-Odpri <http://localhost:5173/register>. Preveri:
-- prazna polja, napačna domena in prekratko geslo prikažejo lokalne napake;
-- neusklajena gesla preprečijo oddajo;
-- veljaven še neuporabljen e-naslov ustvari račun in prikaže potrditev;
-- ponovna registracija istega naslova pokaže napako HTTP 409.
-  Za to osveži stran in znova pošlji enake podatke.
+Odpri http://localhost:5173. Pri Docker zagonu frontend streže nginx;
+`/api/` posreduje backendu in omogoča neposredno osveževanje SPA podstrani.
+Docker ne nalaga lokalnih `.env*` datotek frontenda.
 
-**Pozor:** uspešna registracija ustvari resničen zapis v lokalni tabeli
-`public.users`. Za ponavljanje uporabite nov testni naslov.
+## Testi in gradnja
 
-## Prijavna stran (DB-026)
+Iz `frontend`:
 
-`/login` vsebuje obrazec za e-pošto in geslo, kliče `POST /api/auth/login`
-in ob pravilnih podatkih preusmeri na osnovno ploščo `/`.
-Prikazuje validacijske napake ter HTTP 401, ne shranjuje gesla.
-Trajno stanje prijave in odjava prideta v DB-027.
+```bash
+npm test
+npm run build
+```
 
-Preverjanje: `npm test && npm run build && npm run dev`, nato odpri
-`http://localhost:5173/login`; z obstoječim računom preveri preusmeritev
-na domov, z napačnim geslom pa sporočilo o napaki.
+Testi vključujejo API funkcije in UI tokove prek jsdom. Gradnja ustvari `dist/`.
+Ročno preveri prijavo, dejanske vire, filtriranje in rezervacijo po postopku
+v glavnem README-ju.
 
-## Stanje prijave in odjava (DB-027)
+## Glavne strani
 
-Po uspešni prijavi se JWT in potek veljavnosti hranita v `sessionStorage`
-trenutnega zavihka (ne v `localStorage`). Ob obnovitvi strani se
-uporabnik preveri prek `GET /api/auth/me`, neveljaven ali potekel
-žeton pa se izbriše. Navigacija prikaže gumb **Odjava**, ki odstrani
-lokalno sejo. JWT ima veljavnost 15 minut in se ne osvežuje samodejno.
+| Pot | Namen / dostop |
+| --- | --- |
+| `/register`, `/login` | Registracija in prijava |
+| `/profile` | Profil prijavljenega uporabnika |
+| `/desks`, `/rooms`, `/parking` | Dejanski aktivni viri, filtri razpoložljivosti in rezerviranje |
+| `/search` | Iskanje po vseh vrstah virov |
+| `/reservations/confirm`, `/reservations/success` | Potrditev izbora in rezultat rezervacije s PIN-om |
+| `/reservations/:id/check-in` | Check-in lastne rezervacije |
+| `/admin/resources`, `/admin/resources/new`, `/admin/resources/:id/edit` | Upravljanje virov za vodjo in administratorja |
+| `/analytics` | Analitika in CSV za vodjo in administratorja |
+| `/admin/users` | Administracija uporabnikov samo za administratorja |
 
-Za produkcijo velja opozorilo: JavaScript dosegljivi JWT v
-`sessionStorage` zahtevajo močno zaščito pred XSS. Dolgoročno je
-priporočljivo oceniti varno strežniško sejo ali HttpOnly piškotke.
+Zavihka `/equipment` in `/my-reservations` sta še predstavitvena; ne predstavljata
+končanega samostojnega rezerviranja opreme ali pregleda lastnih rezervacij.
+Rezerviranje desk/sejnih sob/parkirišč in dostop do check-ina uporabljata zgornje poti.
 
-## Zaščitene poti in preverjanje dovoljenj (DB-028)
+JWT je shranjen v `sessionStorage` trenutnega zavihka in velja 15 minut. Ob HTTP 401
+se seja odstrani, HTTP 403 pomeni manjkajoče pravice. Zaščito vedno uveljavlja tudi API.
+PIN uspešne rezervacije je v začasnem Router state; po osvežitvi zaslona lahko izgine.
 
-React `/my-reservations` je dostopen samo ob veljavni prijavi,
-sicer preusmeri na `/login`. `authorizedFetch` samodejno priloži
-Bearer JWT: pri HTTP 401 odstrani lokalno sejo, pri HTTP 403 pa
-prikaže napako dovoljenj, ne da bi uporabnika odjavil.
-
-Backend `auth.RequireJWT` preverja podpis in veljavnost, novi
-`auth.RequireRoles` pa pri dovoljenjih prebere dejansko vlogo iz baze
-(ne iz poljubne zahteve). Vse prihodnje administrativne API poti
-lahko uporabljajo `RequireJWT` in `RequireRoles` skupaj.
-
-## Moj profil (DB-031)
-
-Zaščitena pot `/profile` prebere `GET /api/users/me` z JWT ter
-prikaže ime, priimek, e-pošto, oddelek, vlogo in stanje računa.
-Neprijavljene preusmeri na prijavo, HTTP 401 odstrani sejo in HTTP
-403 pokaže sporočilo o dovoljenjih. `npm test && npm run build`.
-
-## Urejanje profila (DB-032)
-
-Na `/profile` lahko spremeniš ime, priimek in oddelek. Obrazec
-validira podatke pred pošiljanjem, uporablja zaščiten `PATCH
-/api/users/me` in po uspehu osveži prikazane podatke. Prazni oddelek
-se pošlje kot `null`; e-pošte ali vloge ni mogoče urejati.
-
-## Dodajanje virov (DB-036)
-
-Upravitelj ali skrbnik lahko na `/admin/resources/new` doda mizo, sejno sobo
-ali parkirišče, nastavi nadstropje, kapaciteto, aktivnost in opremo.
-Obrazec preveri polja; za ustvarjanje uporabi `POST /api/resources`,
-za opremo pa `POST /api/resources/:id/features`. Ker sta to ločena zahtevka,
-ob napaki shranjevanja opreme sporočilo pove, da je bil vir že ustvarjen.
-
-## Administrativni seznam virov (DB-037)
-
-`/admin/resources` je upraviteljski prikaz vseh virov, tudi neaktivnih.
-Za podatke uporablja zaščiten `GET /api/admin/resources`; prikazuje naziv,
-tip, nadstropje, kapaciteto in stanje. Neprijavljeni uporabniki
-in uporabniki brez upraviteljskih pravic ne dobijo dostopa do API-ja.
-
-## Urejanje vira (DB-040)
-
-Upravljalec lahko iz seznama odpre predizpolnjen obrazec
-`/admin/resources/:id/edit`. Obrazec naloži vir in opremo prek
-`GET /api/admin/resources/:id` ter pošlje vse spremembe v enem
-`PATCH /api/resources/:id`; backend spremembe zapiše v eni transakciji.
-
-## Aktiviranje in deaktiviranje (DB-041)
-
-Na seznamu `/admin/resources` so statusne oznake ter gumba
-**Aktiviraj/Deaktiviraj** za posamezni vir. Prek zaščitenega
-`PATCH /api/resources/:id/activation` shrani spremembo, prikaže napako,
-če operacija odpove, in osveži status v tabeli. Podatkov in rezervacij
-ne briše.
-
-## Stran iskanja (DB-046)
-
-Zaščitena pot `/search` vsebuje odzivno postavitev za filtre in kartice z rezultati.
-Naslednje naloge DB-047–049 dodajajo vnos filtrov, kartice in povezavo z API-jem.
-
-## Filtri za iskanje (DB-047)
-
-Na `/search` je izbor vrste vira, datuma, ure od/do in opreme, ločene z vejicami.
-Preverjanje zahteva vsa tri časovna polja ali nobenega, časovno pravilno zaporedje,
-in do 20 različnih lastnosti. Povezava z API-jem je naloga DB-049.
-
-## Kartica rezultata (DB-048)
-
-Komponenta `ResourceResultCard` prikazuje naziv, tip, nadstropje, kapaciteto
-in razpoložljivo opremo. Gumb »Rezerviraj (kmalu)« je namenoma onemogočen,
-ker ustvarjanje rezervacije še ni implementirano. Do DB-049 je na strani
-prikazan jasno označen primer kartice, ne rezultat iz baze.
-
-## Pravi rezultati iskanja (DB-049)
-
-Stran `/search` je zdaj povezana z zaščitenim `GET /api/resources`, ki
-vrne aktivne in časovno proste vire z dejansko shranjenimi lastnostmi opreme.
-Filtri vključujejo vrsto, datum, začetek, konec ter opremo (zahtevane so **vse**).
-Ob odprtju strani se naložijo aktivni viri. Spreminjanje filtrov in klik
-**Poišči vire** ponovno poizvedujeta po bazi. **Ponastavi filtre** povrne
-vse aktivne vire. Vključena so stanja nalaganja, praznega seznama in napake.
-Dostop ima vsak prijavljen uporabnik; za rezerviranje je gumb še onemogočen,
-ker ustvarjanje rezervacij sodi v kasnejši zahtevek.
-
-Preveri: `npm test && npm run build`, nato v brskalniku `/search`.
-Poskusi `DESK`, datum 2026-11-09, 09:00–17:00, `Monitor` in preveri
-odziv ob napačni kombinaciji filtrov ter ponastavitev.
-
-## Predogled rezervacije (DB-054)
-
-Zaščitena pot `/reservations/confirm` prikazuje izbrani vir, nadstropje,
-datum in uro pred potrditvijo, ob manjkajočem izboru pa uporabnika
-usmeri nazaj na `/search`. Dejanska potrditev bo vključena v DB-055.
-
-## Rezerviranje z API-jem (DB-055)
-
-Na `/search` izberi datum, začetni in končni čas, klikni »Poišči vire«,
-nato na rezultatu »Rezerviraj«. Pot `/reservations/confirm` pokaže vir
-in termin pred končno potrditvijo. `POST /api/reservations` z JWT ustvari
-potrjeno rezervacijo in vrne štirimestni check-in PIN. Konflikt termina
-(HTTP 409) uporabniku pove, da mora izbrati drug čas. Čas se pretvori
-iz Europe/Ljubljana v UTC, brez odvisnosti od lokalne nastavitve računalnika.
-
-## Zaslon uspešne rezervacije (DB-056)
-
-Po uspešnem `POST /api/reservations` je uporabnik preusmerjen na
-`/reservations/success`. Ta zaslon prikaže potrjeni vir, termin,
-status, referenco rezervacije in štirimestni check-in PIN (vključno z
-vodilnimi ničlami). PIN je del začasnega React Router state, **ne** URL,
-localStorage ali sessionStorage. Po osvežitvi lahko prikaz izgine;
-uporabnika opozorimo, naj zaradi tega ne rezervira istega vira znova.
+Podrobnosti: [kategorije virov](../docs/resource-categories.md),
+[check-in](../docs/check-in.md), [analitika](../docs/analytics.md) in
+[administracija uporabnikov](../docs/user-administration.md).
