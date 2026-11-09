@@ -233,3 +233,11 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .analytics-filters .form-field { flex: 1 1 160px; }
 .analytics-comparison { display: block; color: #2659ce; margin-top: 12px; font-size: .78rem; }
 .analytics-filters [role="alert"] { width: 100%; }
+
+.admin-users-page .section-heading { align-items: start; }
+.admin-users-page select { min-width: 155px; padding: 10px; border: 1px solid #ccd8ea; border-radius: 8px; background: #fff; }
+.admin-users-page select:disabled { background: #f1f4f8; color: #63718a; }
+.admin-users-own { display: block; color: #63718a; margin-top: 5px; font-weight: 500; }
+.admin-users-pagination { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 22px; }
+.admin-users-pagination p { flex: 1 1 200px; margin: 0; }
+.admin-users-success { padding: 14px; color: #176b3b; background: #e5f7ec; border-radius: 12px; }

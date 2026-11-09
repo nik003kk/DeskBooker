@@ -48,3 +48,17 @@ obstaja pisalna operacija za brisanje. Tudi profilna pot ne podpira DELETE.
 Sočasni preizkus dveh administratorjev, ki drug drugemu odvzemata vlogo,
 mora dovoliti samo en prehod in ohraniti enega aktivnega administratorja
 iz tega para. Razlog je ponovni pregled vloge po zaklepu obeh vrstic.
+
+
+## Stran Uporabniki (DB-102)
+
+Aktiven administrator odpre `/admin/users` prek povezave Uporabniki.
+Manager in employee te povezave ne vidita, neposreden obisk pa je
+zavrnjen pred nalaganjem seznama. Tabela vsebuje paginacijo, osveževanje,
+varne podatke računa, oznake stanja in izbiro vloge. Lastna vrstica je
+zaklenjena in označena kot Tvoj račun. Brisanja ni v uporabniškem vmesniku.
+
+Pred shranjevanjem modal pokaže ime, e-pošto ter staro in novo vlogo.
+Ob napaki se uspeh ne prikaže; tabela se posodobi šele po potrditvi API-ja.
+Podvojeni kliki ne pošljejo več mutacij. Ob izgubi administratorskih pravic
+se podatki odstranijo in prikaže napaka. Neuspešno branje je mogoče ponoviti.
