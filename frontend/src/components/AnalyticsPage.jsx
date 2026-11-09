@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../AuthContext.jsx'
 import { Button, Card } from './ui.jsx'
@@ -6,6 +6,7 @@ import { defaultAnalyticsPeriod, formatPercent, loadAnalytics } from '../analyti
 import { OccupancyChart, StatusChart } from './AnalyticsCharts.jsx'
 import AnalyticsFilters from './AnalyticsFilters.jsx'
 import { previousAnalyticsPeriod, percentagePointChange, reservationChange } from '../analytics-periods.js'
+import { fetchAnalyticsCSV, saveAnalyticsCSV } from '../analytics-export.js'
 import { paths } from '../routes.js'
 
 export default function AnalyticsPage() {
@@ -16,7 +17,12 @@ export default function AnalyticsPage() {
   const [report, setReport] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [exportError, setExportError] = useState('')
+  const [downloading, setDownloading] = useState(false)
+  const exportController = useRef(null)
+  const exportPending = useRef(false)
   useEffect(() => {
+    exportController.current?.abort(); exportController.current = null; exportPending.current = false; setDownloading(false); setExportError('')
     const controller = new AbortController()
     setLoading(true); setError(''); setReport(null); setPrevious(null)
     const options = { token, logout, signal: controller.signal, apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api' }
@@ -24,10 +30,28 @@ export default function AnalyticsPage() {
       .then(([data, earlier]) => { if (!controller.signal.aborted) { setReport(data); setPrevious(earlier) } })
       .catch(err => { if (!controller.signal.aborted) setError(err.status === 403 ? 'Za analitiko potrebuješ aktivno vlogo vodje ali skrbnika.' : 'Analitike ni mogoče naložiti. Poskusi ponovno.') })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
-    return () => controller.abort()
+    return () => { controller.abort(); exportController.current?.abort() }
   }, [period, token, logout, refresh])
+  async function exportCSV() {
+    if (exportPending.current || loading || !report || report.from !== period.from || report.to !== period.to) return
+    const controller = new AbortController()
+    exportController.current = controller; exportPending.current = true
+    setDownloading(true); setExportError('')
+    try {
+      const file = await fetchAnalyticsCSV(period, { token, logout, signal: controller.signal, apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api' })
+      if (!controller.signal.aborted) saveAnalyticsCSV(file)
+    } catch (err) {
+      if (!controller.signal.aborted) {
+        setExportError('Izvoz CSV ni uspel. Poskusi znova.')
+        if (err.status === 403) { setReport(null); setPrevious(null); setError('Za analitiko potrebuješ aktivno vlogo vodje ali skrbnika.') }
+      }
+    } finally {
+      if (exportController.current === controller) { exportPending.current = false; exportController.current = null; setDownloading(false) }
+    }
+  }
   return <div className="page-stack analytics-page">
-    <div className="section-heading"><div><span className="eyebrow">Pregled pisarne</span><h1>Analitika zasedenosti</h1><p>{period.from} – {period.to} · Europe/Ljubljana</p></div></div>
+    <div className="section-heading"><div><span className="eyebrow">Pregled pisarne</span><h1>Analitika zasedenosti</h1><p>{period.from} – {period.to} · Europe/Ljubljana</p></div><Button variant="secondary" disabled={loading || downloading || !report} onClick={exportCSV}>{downloading ? 'Izvažam ...' : 'Izvozi CSV'}</Button></div>
+    {exportError && <p role="alert">{exportError}</p>}
     <AnalyticsFilters period={period} loading={loading} onChange={setPeriod} onRefresh={() => setRefresh(value => value + 1)} />
     {loading && <Card aria-busy="true"><p role="status">Nalagam analitiko ...</p></Card>}
     {error && <Card><p role="alert">{error}</p><Button onClick={() => setRefresh(value => value + 1)}>Poskusi znova</Button></Card>}
