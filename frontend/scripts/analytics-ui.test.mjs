@@ -35,6 +35,10 @@ const responseFor = (url, empty = false) => Response.json({ analytics: analytics
 test('analytics page renders real KPIs and handles an empty period', async () => {
   await pageHarness(async url => responseFor(url), async () => {
     assert.equal(document.querySelectorAll('.analytics-kpi').length, 4)
+    assert.equal(document.querySelectorAll('svg[role="img"]').length, 2)
+    assert.equal(document.querySelectorAll('.analytics-bars rect').length, 5)
+    assert.equal(document.querySelectorAll('.analytics-legend li').length, 6)
+    assert.equal(document.querySelector('.analytics-donut-total').textContent, '6')
     assert.match(document.querySelector('.analytics-kpis').textContent, /25 %/)
     assert.match(document.querySelector('.analytics-kpis').textContent, /33,33 %/)
     assert.match(document.body.textContent, /09:00 in 17:00/)
