@@ -53,3 +53,12 @@ Kartice pokažejo zasedenost, vse rezervacije, aktivne rezervacije in no-show
 z definicijami ter časom zadnjega podatkovnega posnetka. Stran vključuje
 nalaganje, prazno stanje, sporočilo o napaki in ponovni poskus. Podatki
 se ob zavrnitvi dostopa odstranijo, prekinjene zahteve ne prepišejo novejših.
+
+
+## Grafa (DB-072)
+
+Stolpčni graf prikaže pet tehtanih dnevnih deležev iz `weekdays`, krožni
+pa vseh šest statusov iz `status_counts`. Krožni deleži uporabljajo vse
+rezervacije, zato njihov imenovalec ni isti kot pri KPI no-show. Prazni
+podatki ne ustvarijo navideznih deležev. Graf ima oznake, legendo in
+natančne vrednosti; pri zasedenosti je na voljo tudi podatkovna tabela.

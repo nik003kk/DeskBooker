@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../AuthContext.jsx'
 import { Button, Card } from './ui.jsx'
 import { defaultAnalyticsPeriod, formatPercent, loadAnalytics } from '../analytics-api.js'
+import { OccupancyChart, StatusChart } from './AnalyticsCharts.jsx'
 import { paths } from '../routes.js'
 
 export default function AnalyticsPage() {
@@ -33,6 +34,7 @@ export default function AnalyticsPage() {
         <KPI title="No-show" value={formatPercent(report.no_show.rate)} hint={`${report.no_show.expired} poteklih od ${report.no_show.eligible} znanih izidov`} />
       </div>
       {report.total_reservations === 0 && <Card><h2>V tem obdobju še ni rezervacij</h2><p>Ko bodo ustvarjene, se bodo tukaj prikazali zbirni podatki.</p></Card>}
+      <div className="analytics-charts"><OccupancyChart points={report.weekdays} /><StatusChart counts={report.status_counts} total={report.total_reservations} /></div>
       <Card><h2>Kako beremo podatke</h2><p>Zasedenost meri rezervirani čas trenutno aktivnih virov med 09:00 in 17:00 od ponedeljka do petka. Zgodovina aktivacij ni na voljo. No-show primerja potekle rezervacije s poteklimi, prisotnimi in zaključenimi; prihodnje rezervacije in preklici so iz tega deleža izključeni.</p><p className="field-hint">Zadnje osveževanje: {new Intl.DateTimeFormat('sl-SI', { timeZone: 'Europe/Ljubljana', dateStyle: 'short', timeStyle: 'medium' }).format(new Date(report.generated_at))}</p></Card>
     </>}
     <Card><div className="section-heading"><h2>Upravljanje virov</h2><Link className="ui-button ui-button--primary" to={paths.createResource}>Dodaj vir</Link></div><p>Uredi podatke in opremo ter upravljaj aktivnost virov.</p><Link to={paths.adminResources}>Odpri seznam virov →</Link></Card>
