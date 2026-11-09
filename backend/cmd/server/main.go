@@ -19,6 +19,7 @@ import (
     "github.com/nik003kk/DeskBooker/backend/internal/reservations"
     "github.com/nik003kk/DeskBooker/backend/internal/worker"
     "github.com/nik003kk/DeskBooker/backend/internal/analytics"
+    "github.com/nik003kk/DeskBooker/backend/internal/adminusers"
 )
 
 func main() {
@@ -81,6 +82,7 @@ func main() {
             reservations.DetailHandler(store),
         )
     server.RegisterAnalytics(router,auth.RequireJWT(tokens),auth.RequireAnalyticsManager(store),analytics.SummaryHandler(store),analytics.CSVHandler(store))
+    server.RegisterAdminUsers(router,auth.RequireJWT(tokens),auth.RequireAdministrator(store),adminusers.ListHandler(store))
     srv := &http.Server{
         Addr: ":"+port,
         Handler: router,

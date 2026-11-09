@@ -146,4 +146,6 @@ func TestCheckInIntegration(t *testing.T) {
 
 	t.Run("analytics", func(t *testing.T) { testAnalytics(t, pool, owner) })
 
+	t.Run("user administration", func(t *testing.T) { testUserAdministration(t, pool) })
+
 }
