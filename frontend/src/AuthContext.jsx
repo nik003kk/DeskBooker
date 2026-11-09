@@ -37,6 +37,36 @@ export function AuthProvider({ children }) {
     return () => { active = false; controller.abort() }
   }, [logout])
 
+  // Refresh the displayed role when returning from another tab/window.
+  // Every protected API request remains independently authorized by the server.
+  useEffect(() => {
+    let active = true
+    let controller = null
+    function refreshCurrentUser() {
+      if (document.visibilityState === 'hidden') return
+      const current = readAuthSession(window.sessionStorage)
+      if (!current) return
+      controller?.abort()
+      controller = new AbortController()
+      const signal = controller.signal
+      fetch(baseUrl.replace(/\/$/, '') + '/auth/me', {
+        headers: { Authorization: 'Bearer ' + current.access_token }, signal,
+      }).then(async response => {
+        if (!active || signal.aborted || readAuthSession(window.sessionStorage)?.access_token !== current.access_token) return
+        if (response.status === 401 || response.status === 403) { logout(); return }
+        if (!response.ok) return
+        const data = await response.json()
+        if (!active || signal.aborted || readAuthSession(window.sessionStorage)?.access_token !== current.access_token) return
+        if (!data?.user?.id || data.user.id !== current.user.id) { logout(); return }
+        writeAuthSession(window.sessionStorage, { ...current, user: data.user })
+        setSession(previous => previous?.access_token === current.access_token ? { ...previous, user: data.user } : previous)
+      }).catch(() => {})
+    }
+    window.addEventListener('focus', refreshCurrentUser)
+    document.addEventListener('visibilitychange', refreshCurrentUser)
+    return () => { active = false; controller?.abort(); window.removeEventListener('focus', refreshCurrentUser); document.removeEventListener('visibilitychange', refreshCurrentUser) }
+  }, [session?.access_token, logout])
+
   useEffect(() => {
     if (!session) return
     const delay = Date.parse(session.expires_at) - Date.now()
@@ -58,3 +88,4 @@ export function useAuth() {
   if (!value) throw new Error('useAuth requires AuthProvider')
   return value
 }
+

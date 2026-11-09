@@ -62,3 +62,56 @@ Pred shranjevanjem modal pokaže ime, e-pošto ter staro in novo vlogo.
 Ob napaki se uspeh ne prikaže; tabela se posodobi šele po potrditvi API-ja.
 Podvojeni kliki ne pošljejo več mutacij. Ob izgubi administratorskih pravic
 se podatki odstranijo in prikaže napaka. Neuspešno branje je mogoče ponoviti.
+
+## Aktualne pravice (DB-103)
+
+Vse produkcijske zaščitene poti uporabljajo `RequireCurrentJWT`: najprej
+preveri JWT, nato iz baze naloži trenutni račun, vlogo in stanje.
+Izbrisan račun dobi 401, neaktiven/suspendiran 403, napaka baze 500.
+Vloge v starem žetonu niso vir pravic. Isti JWT po povišanju ali odvzemu
+vloge uporablja nove pravice pri naslednji zaščiteni zahtevi.
+
+Preverjeni podatki se shranijo samo v kontekst trenutne zahteve.
+Middleware za vloge in `/api/auth/me` jih lahko uporabita brez ponovnega
+branja; med zahtevami ni predpomnilnika pravic. Posodobitev vloge še vedno
+ponovno preveri administratorja po transakcijskem zaklepu. Že začeta
+običajna zahteva lahko zaključi svoj posnetek pravic; naslednja preveri nove.
+
+`RequireJWT` ostaja podpisni pripomoček za izolirane teste. Produkcijski
+strežnik uporablja `RequireCurrentJWT` na vseh zaščitenih registracijah.
+Ob vrnitvi na zavihek se v brskalniku ponovno pridobi `/api/auth/me`,
+da se osvežijo tudi prikazana vloga in navigacija. Ta osvežitev ni pogoj
+za veljavnost pravic na strežniku.
+
+## Skupni funkcionalni preizkus
+
+Iz korena projekta posodobi development. Nova migracija ni potrebna;
+`go run ./cmd/migrate status` v backend mora še vedno pokazati
+**13, dirty: false**. Ponovno zaženi backend in frontend.
+
+1. Kot admin odpri Uporabniki. Preveri podatke, paginacijo, stanje in
+   zaklenjeno lastno vrstico. Kot manager/employee povezave ne sme biti;
+   neposreden `/admin/users` in API morata biti zavrnjena.
+2. Za drug namenski testni račun pridobi žeton in ga obdrži skozi test.
+   Ne pošiljaj ga v pogovor. Pred povišanjem mora administratorska pot
+   vrniti 403.
+3. Kot admin spremeni ta račun iz Zaposleni v Vodja pisarne in potrdi
+   modal. Z istim žetonom testnega računa mora upravljanje virov oziroma
+   analitika postati dostopna; seznam uporabnikov ostane prepovedan.
+4. Spremeni ga v Administrator: `/api/admin/users` mora z istim žetonom
+   uspeti. Nato ga vrni v Zaposleni: isti endpoint mora takoj vrniti 403.
+   `/api/auth/me` mora prikazati aktualno vlogo. Pazi na 15-minutni potek JWT.
+5. Lastni PATCH `/api/admin/users/<lastni-id>/role` mora vrniti 403
+   `self_role_protected`, DELETE lastnega računa pa 403
+   `self_account_protected`. Račun mora ostati nespremenjen.
+6. Preveri napačno vlogo (400) in neobstoječ UUID (404). Po koncu pusti
+   testni račun v njegovi prvotni vlogi.
+
+Primer (z žetonom administratorja in ID-jem drugega testnega uporabnika):
+
+```bash
+curl -i -X PATCH "http://localhost:8080/api/admin/users/$TARGET_USER_ID/role" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"role":"OFFICE_MANAGER"}'
+```

@@ -64,7 +64,7 @@ func main() {
             pool, allowedOrigins,
             auth.RegisterHandler(store, os.Getenv("REGISTRATION_EMAIL_DOMAIN")),
             auth.LoginHandlerWithJWT(store, tokens),
-            auth.RequireJWT(tokens),
+            auth.RequireCurrentJWT(tokens,store),
             auth.MeHandler(store),
             auth.ProfileHandler(store),
             auth.UpdateProfileHandler(store),
@@ -81,8 +81,8 @@ func main() {
             reservations.CheckInHandler(repository.NewBookingStore(pool)),
             reservations.DetailHandler(store),
         )
-    server.RegisterAnalytics(router,auth.RequireJWT(tokens),auth.RequireAnalyticsManager(store),analytics.SummaryHandler(store),analytics.CSVHandler(store))
-    server.RegisterAdminUsers(router,auth.RequireJWT(tokens),auth.RequireAdministrator(store),adminusers.ListHandler(store),adminusers.ChangeRoleHandler(repository.NewUserAdminStore(pool)),adminusers.ProtectDeletionHandler())
+    server.RegisterAnalytics(router,auth.RequireCurrentJWT(tokens,store),auth.RequireAnalyticsManager(store),analytics.SummaryHandler(store),analytics.CSVHandler(store))
+    server.RegisterAdminUsers(router,auth.RequireCurrentJWT(tokens,store),auth.RequireAdministrator(store),adminusers.ListHandler(store),adminusers.ChangeRoleHandler(repository.NewUserAdminStore(pool)),adminusers.ProtectDeletionHandler())
     srv := &http.Server{
         Addr: ":"+port,
         Handler: router,

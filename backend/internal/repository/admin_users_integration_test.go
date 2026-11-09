@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nik003kk/DeskBooker/backend/internal/auth"
 	"github.com/nik003kk/DeskBooker/backend/internal/models"
+	"net/http/httptest"
 	"strings"
 	"sync"
 	"testing"
@@ -96,5 +99,49 @@ func testUserAdministration(t *testing.T, pool *pgxpool.Pool) {
 	if err := pool.QueryRow(ctx, "SELECT count(*) FROM public.users WHERE id=ANY($1::uuid[]) AND role='admin' AND status='active'", []string{left, right}).Scan(&remaining); err != nil || remaining != 1 {
 		t.Fatalf("no active administrator remained: %d %v", remaining, err)
 	}
+
+	// Reuse one JWT throughout real PostgreSQL role changes. Both privileges
+	// and ordinary authenticated routes must observe the next request's user.
+	tokens, err := auth.NewJWTService("postgres-current-rights-test-secret-at-least-32-bytes")
+	if err != nil {
+		t.Fatal(err)
+	}
+	token, _, err := tokens.Issue(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	router := gin.New()
+	router.GET("/private", auth.RequireCurrentJWT(tokens, store), auth.MeHandler(store))
+	router.GET("/admin", auth.RequireCurrentJWT(tokens, store), auth.RequireAdministrator(store), func(c *gin.Context) { c.Status(200) })
+	router.GET("/manager", auth.RequireCurrentJWT(tokens, store), auth.RequireResourceManager(store), func(c *gin.Context) { c.Status(200) })
+	checkAccess := func(path string, want int) {
+		t.Helper()
+		r := httptest.NewRecorder()
+		request := httptest.NewRequest("GET", path, nil)
+		request.Header.Set("Authorization", "Bearer "+token)
+		router.ServeHTTP(r, request)
+		if r.Code != want {
+			t.Fatalf("%s: %d %s", path, r.Code, r.Body.String())
+		}
+	}
+	for _, state := range []struct {
+		role           models.UserRole
+		admin, manager int
+	}{{models.RoleManager, 403, 200}, {models.RoleAdmin, 200, 200}, {models.RoleEmployee, 403, 403}} {
+		if _, err := changer.ChangeUserRole(ctx, admin, target, state.role); err != nil {
+			t.Fatal(err)
+		}
+		checkAccess("/admin", state.admin)
+		checkAccess("/manager", state.manager)
+		checkAccess("/private", 200)
+	}
+	if _, err := pool.Exec(ctx, "UPDATE public.users SET status='suspended' WHERE id=$1", target); err != nil {
+		t.Fatal(err)
+	}
+	checkAccess("/private", 403)
+	if _, err := pool.Exec(ctx, "DELETE FROM public.users WHERE id=$1", target); err != nil {
+		t.Fatal(err)
+	}
+	checkAccess("/private", 401)
 
 }
