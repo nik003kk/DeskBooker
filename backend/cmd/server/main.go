@@ -17,6 +17,7 @@ import (
     "github.com/nik003kk/DeskBooker/backend/internal/repository"
     "github.com/nik003kk/DeskBooker/backend/internal/resources"
     "github.com/nik003kk/DeskBooker/backend/internal/reservations"
+    "github.com/nik003kk/DeskBooker/backend/internal/worker"
 )
 
 func main() {
@@ -48,6 +49,15 @@ func main() {
 	log.Println("Povezava s PostgreSQL je uspešno vzpostavljena")
 
     store := repository.New(pool)
+    workerDone := make(chan struct{})
+    go func() {
+        defer close(workerDone)
+        if err := worker.Run(ctx, worker.NoShowInterval, store.CountNoShows, log.Printf); err != nil {
+            log.Print("No-show worker: invalid configuration")
+        }
+    }()
+    defer func() { stop(); <-workerDone }()
+
     srv := &http.Server{
 		Addr:              ":" + port,
 		Handler:           server.NewRouterWithReservations(
