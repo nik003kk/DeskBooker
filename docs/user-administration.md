@@ -31,3 +31,20 @@ stabilnem vrstnem redu ID-jev. Pravice administratorja se ponovno
 preverijo po zaklepu, zato stara preveritev middleware ne dovoljuje
 spremembe po sočasnem odvzemu vloge. Lastna vloga je zaščitena že ob
 prvi uvedbi pisalnega endpointa. Gesla niso del tega API-ja.
+
+
+## Zaščita lastnega računa (DB-101)
+
+Lastne vloge ni mogoče nastaviti ali spremeniti, tudi če je nova vloga
+enaka ali je UUID zapisan z velikimi črkami. Vrne se 403
+`self_role_protected`. Identiteta administratorja izhaja iz preverjenega
+JWT; polj actor_id, user_id, status ali email v zahtevku ni dovoljeno dodati.
+
+DELETE `/api/admin/users/:id` pri lastnem računu vrne 403
+`self_account_protected`; ostalo brisanje je onemogočeno in vrne 403
+`account_deletion_disabled`. Splošno brisanje računov ni del MVP in ne
+obstaja pisalna operacija za brisanje. Tudi profilna pot ne podpira DELETE.
+
+Sočasni preizkus dveh administratorjev, ki drug drugemu odvzemata vlogo,
+mora dovoliti samo en prehod in ohraniti enega aktivnega administratorja
+iz tega para. Razlog je ponovni pregled vloge po zaklepu obeh vrstic.
