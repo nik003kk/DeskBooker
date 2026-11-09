@@ -58,3 +58,36 @@ test('analytics authorization errors show no data and allow retry', async () => 
     assert.ok(document.querySelector('.analytics-kpis'))
   })
 })
+
+test('analytics filters request current and equal previous ranges and refresh both', async () => {
+  const requested = []
+  await pageHarness(async url => { requested.push(Object.fromEntries(new URL(url).searchParams)); return responseFor(url) }, async ({ act, dom }) => {
+    assert.equal(requested.length, 2)
+    await act(async () => { const select = document.querySelector('select'); select.value = 'month'; select.dispatchEvent(new dom.window.Event('change', { bubbles: true })) })
+    assert.equal(requested.length, 4)
+    assert.equal((Date.parse(requested[2].to) - Date.parse(requested[2].from)) / 86400000 + 1, 30)
+    assert.equal((Date.parse(requested[3].to) - Date.parse(requested[3].from)) / 86400000 + 1, 30)
+    await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Osveži podatke').click())
+    assert.equal(requested.length, 6)
+    await act(async () => { const select = document.querySelector('select'); select.value = 'custom'; select.dispatchEvent(new dom.window.Event('change', { bubbles: true })) })
+    assert.equal(document.querySelectorAll('input[type="date"]').length, 2)
+  })
+})
+
+test('late analytics responses never overwrite a newer period', async () => {
+  let hold = false
+  const delayed = []
+  await pageHarness(async url => {
+    if (hold) return new Promise(resolve => delayed.push(() => resolve(responseFor(url))))
+    return responseFor(url)
+  }, async ({ act, dom }) => {
+    hold = true
+    await act(async () => { const select = document.querySelector('select'); select.value = 'month'; select.dispatchEvent(new dom.window.Event('change', { bubbles: true })) })
+    assert.equal(delayed.length, 2)
+    hold = false
+    await act(async () => { const select = document.querySelector('select'); select.value = 'week'; select.dispatchEvent(new dom.window.Event('change', { bubbles: true })) })
+    const newer = document.querySelector('.analytics-page').textContent
+    await act(async () => delayed.forEach(resolve => resolve()))
+    assert.equal(document.querySelector('.analytics-page').textContent, newer)
+  })
+})
