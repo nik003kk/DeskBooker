@@ -62,3 +62,15 @@ pa vseh šest statusov iz `status_counts`. Krožni deleži uporabljajo vse
 rezervacije, zato njihov imenovalec ni isti kot pri KPI no-show. Prazni
 podatki ne ustvarijo navideznih deležev. Graf ima oznake, legendo in
 natančne vrednosti; pri zasedenosti je na voljo tudi podatkovna tabela.
+
+
+## Obdobja in primerjava (DB-073)
+
+Stran podpira zadnjih 7 dni, zadnjih 30 dni in poljubni vključujoči
+obdobji do 366 dni. Primerjalno obdobje je neposredno pred izbranim
+in ima enako število koledarskih dni. Pri deležih je razlika prikazana
+v odstotnih točkah, pri številu vseh rezervacij kot relativna sprememba;
+ničelna osnova in neznani deleži so posebej označeni. Trenutno aktivnih
+rezervacij ne primerjamo z zgodovinskim stanjem, ki ga baza ne hrani.
+Gumb Osveži podatke ponovno pridobi obe obdobji. Prekinjene in pozne
+zahteve prejšnjega izbora ne smejo prepisati novega prikaza.

@@ -228,3 +228,8 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .analytics-table-scroll th,.analytics-table-scroll td { padding: 10px 8px; border-bottom: 1px solid #e3e9f1; text-align: left; }
 @media(max-width:960px) { .analytics-charts { grid-template-columns: 1fr; } }
 @media(max-width:540px) { .analytics-status-layout { flex-direction: column; }.analytics-donut { width: 65%; }.analytics-legend { width: 100%; } }
+
+.analytics-filters { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; padding: 20px; border: 1px solid #e3e9f1; background: #fff; border-radius: 16px; }
+.analytics-filters .form-field { flex: 1 1 160px; }
+.analytics-comparison { display: block; color: #2659ce; margin-top: 12px; font-size: .78rem; }
+.analytics-filters [role="alert"] { width: 100%; }
