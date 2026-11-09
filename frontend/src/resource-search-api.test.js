@@ -48,3 +48,10 @@ test('401 removes session; 403 preserves it', async () => {
     assert.equal(loggedOut,status===401)
   }
 })
+
+
+test('typed catalogs reject a wrong category or inactive API result', async () => {
+  for (const resource of [{ id: 'room', name: 'Room', type: 'MEETING_ROOM', is_active: true }, { id: 'desk', name: 'Desk', type: 'DESK', is_active: false }]) {
+    await assert.rejects(searchAvailableResources({ type: 'DESK' }, { token: 'test', fetchImpl: async () => Response.json({ resources: [resource] }) }), /neveljavne podatke/)
+  }
+})
