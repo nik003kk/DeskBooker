@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from './ui.jsx'
 import { submitCheckIn } from '../check-in-api.js'
+import { useCheckInWindow } from '../use-check-in-window.js'
+import { checkInWindowLabel } from '../check-in-window.js'
 
 export default function CheckInModal({ reservation, options, onClose, onSuccess }) {
   const dialog = useRef(null)
   const inputs = useRef([])
   const pending = useRef(false)
   const alive = useRef(true)
+  const windowState = useCheckInWindow(reservation)
   const [digits, setDigits] = useState(['', '', '', ''])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -39,7 +42,7 @@ export default function CheckInModal({ reservation, options, onClose, onSuccess 
   }
   async function submit(event) {
     event.preventDefault()
-    if (pending.current || !/^\d{4}$/.test(digits.join(''))) return
+    if (pending.current || !windowState.canSubmit || !/^\d{4}$/.test(digits.join(''))) return
     pending.current = true
     setBusy(true); setError('')
     try {
@@ -63,7 +66,8 @@ export default function CheckInModal({ reservation, options, onClose, onSuccess 
         <span className="eyebrow">Potrditev prihoda</span>
         <h2 id="check-in-title">Check-in s PIN kodo</h2>
         <p id="check-in-hint">Vnesi štirimestno kodo, ki si jo prejel ob rezervaciji.</p>
-        <fieldset disabled={busy} className="check-in-pin-fields">
+        <p className="check-in-countdown" role="status" aria-live="off">{checkInWindowLabel(windowState)}</p>
+        <fieldset disabled={busy || !windowState.canSubmit} className="check-in-pin-fields">
           <legend className="sr-only">Štirimestna PIN koda</legend>
           {digits.map((digit, index) => <input key={index} ref={element => { inputs.current[index] = element }}
             aria-label={'PIN, številka ' + (index + 1)} type="text" inputMode="numeric" pattern="[0-9]"
@@ -77,7 +81,7 @@ export default function CheckInModal({ reservation, options, onClose, onSuccess 
         </fieldset>
         {error && <p role="alert" className="auth-feedback auth-feedback--error">{error}</p>}
         <div className="check-in-actions">
-          <Button type="submit" disabled={busy || !/^\d{4}$/.test(digits.join(''))}>{busy ? 'Potrjujem ...' : 'Potrdi prisotnost'}</Button>
+          <Button type="submit" disabled={busy || !windowState.canSubmit || !/^\d{4}$/.test(digits.join(''))}>{busy ? 'Potrjujem ...' : 'Potrdi prisotnost'}</Button>
           <Button variant="secondary" disabled={busy} onClick={onClose}>Zapri</Button>
         </div>
       </form>

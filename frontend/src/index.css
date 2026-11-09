@@ -194,3 +194,5 @@ p { color: var(--muted); line-height: 1.65; margin: 0 0 12px; }
 .check-in-pin-fields input { width: min(64px, 18vw); height: 64px; border: 1px solid #b7c5db; border-radius: 12px; text-align: center; font-size: 1.8rem; font-variant-numeric: tabular-nums; }
 .check-in-pin-fields input:focus { outline: 3px solid #aac7ff; outline-offset: 2px; border-color: #2156c7; }
 .check-in-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+
+.check-in-countdown { padding: 14px 16px; border-radius: 12px; background: #edf3ff; color: #2156c7; font-weight: 600; font-variant-numeric: tabular-nums; }

@@ -5,6 +5,8 @@ import { Button, Card, StatusBadge } from './ui.jsx'
 import CheckInModal from './CheckInModal.jsx'
 import { loadCheckIn } from '../check-in-api.js'
 import { paths } from '../routes.js'
+import { useCheckInWindow } from '../use-check-in-window.js'
+import { checkInWindowLabel } from '../check-in-window.js'
 
 function officeTime(value) {
   return new Intl.DateTimeFormat('sl-SI', { timeZone: 'Europe/Ljubljana', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
@@ -19,6 +21,7 @@ export default function CheckInPage() {
   const [open, setOpen] = useState(false)
   const [reload, setReload] = useState(0)
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
+  const windowState = useCheckInWindow(data?.reservation)
   const refresh = useCallback(() => setReload(value => value + 1), [])
   useEffect(() => {
     const controller = new AbortController()
@@ -44,7 +47,8 @@ export default function CheckInPage() {
         <div><dt>Začetek</dt><dd>{officeTime(reservation.starts_at)}</dd></div>
         <div><dt>Konec</dt><dd>{officeTime(reservation.ends_at)}</dd></div>
       </dl>
-      {reservation.status === 'CONFIRMED' && <Button onClick={() => setOpen(true)}>Potrdi prihod s PIN-om</Button>}
+      <p className="check-in-countdown" role="status" aria-live="off">{checkInWindowLabel(windowState)}</p>
+      {reservation.status === 'CONFIRMED' && <Button disabled={!windowState.canSubmit} onClick={() => setOpen(true)}>Potrdi prihod s PIN-om</Button>}
       <p><Button variant="secondary" onClick={refresh}>Osveži podatke</Button></p>
       <p className="field-hint">Referenca rezervacije: {reservation.id}</p>
       <p><Link to={paths.search}>Nazaj na iskanje virov</Link></p>
