@@ -230,11 +230,11 @@ npm run build
 Ta izvaja migracije in podatkovne spremembe, zato ga izvajaj **samo na prazni,
 ločeni testni bazi**, nikoli na svoji razvojni ali produkcijski bazi.
 
-CI v [`.github/workflows/ci.yml`](.github/workflows/ci.yml) sam pripravi tako bazo
-in izvede `go test -race ./internal/repository -run TestCheckInIntegration -count=1 -v`.
-Preveri tudi Go teste/vet/gradnjo, frontend teste/gradnjo in celotno Docker okolje:
-proxy, prijavo, dovoljenja, migracije ter ohranitev podatkov po ponovni postavitvi.
-Docker smoke skripta ustvarja testni račun in je namenjena temu izoliranemu CI okolju.
+CI/CD je odložen do naslednje naloge; ob pushu in PR-ju se testi ali gradnje
+ne zaganjajo samodejno. Zgornje ukaze izvedi ročno pred združevanjem sprememb.
+Navodila za ločeno PostgreSQL testno bazo in Docker smoke preizkus so v
+[ročnem preverjanju](docs/ci.md). Docker smoke skripta ustvarja testni račun;
+uporabi jo samo v izoliranem testnem okolju.
 
 ### Ročni preizkus MVP-ja
 

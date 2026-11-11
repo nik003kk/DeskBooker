@@ -41,8 +41,8 @@ te rezervacije v `CONFIRMED` in odstrani čas check-in-a.
 Integracijski test uporablja **prazno namensko testno bazo** prek
 `CHECK_IN_TEST_DATABASE_URL`. Sam izvede migracije in preveri lastništvo,
 napačen PIN, sočasni check-in, nespremenjen čas pri ponovitvi ter
-izločanje zasedenega vira iz iskanja in novih rezervacij. GitHub Actions
-za to ustvari ločen PostgreSQL 17 servis.
+izločanje zasedenega vira iz iskanja in novih rezervacij. Testno PostgreSQL 17
+bazo pripravi ročno po [navodilih](ci.md).
 
 ## Uporabniški vmesnik
 
