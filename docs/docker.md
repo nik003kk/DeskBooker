@@ -72,10 +72,10 @@ HTTPS in ustrezno upravljanje produkcijskih skrivnosti.
 
 ## Preverjanje
 
-CI zgradi obe sliki ter na svežem volume preveri zagon, migracije, prijavo,
-zaščiten API prek nginx proxyja, osvežitev SPA podstrani, zavrnitev neprijavljenega
-klica in ohranitev registriranega uporabnika po `down`/`up`.
-Preveri tudi zavrnitev konfiguracije brez obveznih skrivnosti in ponovitev migracij.
+Celotno okolje preveri ročno: zgradi in zaženi storitve, preveri stanje migracij,
+prijavo, zaščiten API prek nginx proxyja ter osvežitev SPA podstrani.
+Za Docker smoke skripto uporabi ločeno testno okolje po [navodilih](ci.md).
+Samodejni CI/CD je odložen do naslednje naloge.
 
 Ročno preveri obstoječo prijavo, prikaz dejanskih virov in rezervacijo. Po ponovnem
 zagonu morajo uporabniki in rezervacije ostati v bazi.
