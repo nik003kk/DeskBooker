@@ -34,7 +34,8 @@ go build ./...
 ```
 
 Brez `CHECK_IN_TEST_DATABASE_URL` se integracijski test s PostgreSQL preskoči.
-CI ga izvede s `-race` na prazni, ločeni bazi. Ne usmerjaj ga na razvojno ali
+Ročno ga izvedi s `-race` na prazni, ločeni bazi po [navodilih](../docs/ci.md).
+Ne usmerjaj ga na razvojno ali
 produkcijsko bazo: sam izvaja migracije in podatkovne spremembe.
 
 Izbirni `APP_ENV=development go run ./cmd/seed` polni samo shemo `demo_seed`;

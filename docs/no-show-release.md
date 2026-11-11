@@ -60,7 +60,8 @@ ORDER BY occurred_at;
 
 ## Avtomatizirani preizkusi (DB-067)
 
-GitHub Actions uporablja ločen PostgreSQL 17 in `go test -race`.
+Preizkuse zaženi ročno z ločenim PostgreSQL 17 in `go test -race`
+po [navodilih](ci.md).
 Poleg check-in-a preveri večkratne preglede, osem sočasnih workerjev,
 en sam revizijski dogodek, mejo točno 15 minut in mikrosekundo za njo.
 Preizkusi z nadzorovanimi transakcijskimi zaklepi preverijo oba vrstna

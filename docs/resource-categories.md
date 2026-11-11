@@ -50,7 +50,8 @@ PostgreSQL integracijski preizkus uporabi pravi administratorski API za
 ustvarjanje, urejanje in deaktivacijo vseh treh vrst. Iskanje bere z JWT
 zaposlenega, preveri opremo in spremenjena polja, premik v drugo kategorijo
 po spremembi tipa ter izločanje zasedenega vira po dejanskem vnosu rezervacije.
-Podatki so namenski testni primeri v ločeni CI bazi.
+Podatki so namenski testni primeri v ločeni testni bazi;
+[navodila za ročni zagon](ci.md).
 
 ## Skupni lokalni preizkus
 
